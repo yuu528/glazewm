@@ -1,4 +1,4 @@
-using LarsWM.Infrastructure.WindowsApi.Enums;
+﻿using LarsWM.Infrastructure.WindowsApi.Enums;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -334,5 +334,80 @@ namespace LarsWM.Infrastructure.WindowsApi
 
     [DllImport("User32.dll")]
     public static extern IntPtr MonitorFromPoint(System.Drawing.Point pt, MonitorFromPointFlags dwFlags);
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct AppBarData
+    {
+      public int cbSize;
+      public IntPtr hWnd;
+      public int uCallbackMessage;
+      public int uEdge;
+      public Rectangle rc;
+      public IntPtr lParam;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct WindowPos
+    {
+      public IntPtr hwnd;
+      public IntPtr hwndInsertAfter;
+      public int x;
+      public int y;
+      public int cx;
+      public int cy;
+      public SWP flags;
+    }
+
+    public enum AppBarMessage
+    {
+      NEW,
+      REMOVE,
+      QUERYPOS,
+      SETPOS,
+      GETSTATE,
+      GETTASKBARPOS,
+      ACTIVATE,
+      GETAUTOHIDEBAR,
+      SETAUTOHIDEBAR,
+      WINDOWPOSCHANGED,
+      SETSTATE
+    }
+
+    public enum ABN
+    {
+      STATECHANGE,
+      POSCHANGED,
+      FULLSCREENAPP,
+      WINDOWARRANGE
+    }
+
+    /// <summary>
+    /// Windows Messages
+    /// Defined in winuser.h from Windows SDK v6.1
+    /// Documentation pulled from MSDN.
+    /// </summary>
+    public enum WindowMessage : uint
+    {
+      /// <summary>
+      /// The WM_ACTIVATE message is sent to both the window being activated and the window being deactivated. If the windows use the same input queue, the message is sent synchronously, first to the window procedure of the top-level window being deactivated, then to the window procedure of the top-level window being activated. If the windows use different input queues, the message is sent asynchronously, so the window is activated immediately.
+      /// </summary>
+      ACTIVATE = 0x0006,
+
+      /// <summary>
+      /// The WM_WINDOWPOSCHANGING message is sent to a window whose size, position, or place in the Z order is about to change as a result of a call to the SetWindowPos function or another window-management function.
+      /// </summary>
+      WINDOWPOSCHANGING = 0x0046,
+
+      /// <summary>
+      /// The WM_WINDOWPOSCHANGED message is sent to a window whose size, position, or place in the Z order has changed as a result of a call to the SetWindowPos function or another window-management function.
+      /// </summary>
+      WINDOWPOSCHANGED = 0x0047,
+    }
+
+    [DllImport("shell32.dll", ExactSpelling = true)]
+    public static extern uint SHAppBarMessage(AppBarMessage dwMessage, ref AppBarData pData);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int RegisterWindowMessage(string msg);
   }
 }
