@@ -39,7 +39,7 @@ namespace LarsWM.Domain.Windows
 
     public string ClassName => _windowService.GetClassNameOfHandle(Hwnd);
 
-    public WindowRect Location => _windowService.GetLocationOfHandle(Hwnd);
+    public Rectangle Location => _windowService.GetLocationOfHandle(Hwnd);
 
     public bool CanLayout => !_windowService.IsHandleCloaked(Hwnd)
       && _windowService.IsHandleManageable(Hwnd);

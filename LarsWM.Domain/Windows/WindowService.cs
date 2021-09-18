@@ -72,9 +72,9 @@ namespace LarsWM.Domain.Windows
     /// <summary>
     /// Get dimensions of the bounding rectangle of the specified window.
     /// </summary>
-    public WindowRect GetLocationOfHandle(IntPtr handle)
+    public Rectangle GetLocationOfHandle(IntPtr handle)
     {
-      WindowRect rect = new WindowRect();
+      var rect = new Rectangle();
       GetWindowRect(handle, ref rect);
       return rect;
     }
