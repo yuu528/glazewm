@@ -9,8 +9,9 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using static LarsWM.Infrastructure.WindowsApi.WindowsApiService;
+using LarsWM.Infrastructure.WindowsApi;
 
-namespace WpfAppBar
+namespace LarsWM.Bar
 {
   public class AppBarWindow : Window
   {
@@ -134,8 +135,8 @@ namespace WpfAppBar
 
       source.AddHook(WndProc);
 
-      var abd = GetAppBarData();
-      SHAppBarMessage(ABM.NEW, ref abd);
+      var appBarData = GetAppBarData();
+      SHAppBarMessage(AppBarMessage.NEW, ref appBarData);
 
       // set our initial location
       this.IsAppBarRegistered = true;
@@ -154,7 +155,7 @@ namespace WpfAppBar
       if (IsAppBarRegistered)
       {
         var abd = GetAppBarData();
-        SHAppBarMessage(ABM.REMOVE, ref abd);
+        SHAppBarMessage(AppBarMessage.REMOVE, ref abd);
         IsAppBarRegistered = false;
       }
     }
@@ -180,34 +181,34 @@ namespace WpfAppBar
         return;
       }
 
-      var abd = GetAppBarData();
-      abd.rc = (RECT)GetSelectedMonitor().ViewportBounds;
+      var appBarData = GetAppBarData();
+      appBarData.rc = (Rectangle)GetSelectedMonitor().ViewportBounds;
 
-      SHAppBarMessage(ABM.QUERYPOS, ref abd);
+      SHAppBarMessage(AppBarMessage.QUERYPOS, ref appBarData);
 
       var dockedWidthOrHeightInDesktopPixels = WpfDimensionToDesktop(DockedWidthOrHeight);
       switch (DockMode)
       {
         case AppBarDockMode.Top:
-          abd.rc.bottom = abd.rc.top + dockedWidthOrHeightInDesktopPixels;
+          appBarData.rc.Bottom = appBarData.rc.Top + dockedWidthOrHeightInDesktopPixels;
           break;
         case AppBarDockMode.Bottom:
-          abd.rc.top = abd.rc.bottom - dockedWidthOrHeightInDesktopPixels;
+          appBarData.rc.Top = appBarData.rc.Bottom - dockedWidthOrHeightInDesktopPixels;
           break;
         case AppBarDockMode.Left:
-          abd.rc.right = abd.rc.left + dockedWidthOrHeightInDesktopPixels;
+          appBarData.rc.Right = appBarData.rc.Left + dockedWidthOrHeightInDesktopPixels;
           break;
         case AppBarDockMode.Right:
-          abd.rc.left = abd.rc.right - dockedWidthOrHeightInDesktopPixels;
+          appBarData.rc.Left = appBarData.rc.Right - dockedWidthOrHeightInDesktopPixels;
           break;
         default: throw new NotSupportedException();
       }
 
-      SHAppBarMessage(ABM.SETPOS, ref abd);
+      SHAppBarMessage(AppBarMessage.SETPOS, ref appBarData);
       IsInAppBarResize = true;
       try
       {
-        WindowBounds = (Rect)abd.rc;
+        WindowBounds = appBarData.rc;
       }
       finally
       {
@@ -227,11 +228,11 @@ namespace WpfAppBar
       return monitor;
     }
 
-    private APPBARDATA GetAppBarData()
+    private AppBarData GetAppBarData()
     {
-      return new APPBARDATA()
+      return new AppBarData()
       {
-        cbSize = Marshal.SizeOf(typeof(APPBARDATA)),
+        cbSize = Marshal.SizeOf(typeof(AppBarData)),
         hWnd = new WindowInteropHelper(this).Handle,
         uCallbackMessage = AppBarMessageId,
         uEdge = (int)DockMode
@@ -254,21 +255,21 @@ namespace WpfAppBar
 
     public IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-      if (msg == WM_WINDOWPOSCHANGING && !IsInAppBarResize)
+      if (msg == WindowMessage.WINDOWPOSCHANGING && !IsInAppBarResize)
       {
-        var wp = Marshal.PtrToStructure<WINDOWPOS>(lParam);
-        wp.flags |= SWP_NOMOVE | SWP_NOSIZE;
+        var wp = Marshal.PtrToStructure<WindowPos>(lParam);
+        wp.flags |= SWP.SWP_NOMOVE | SWP.SWP_NOSIZE;
         Marshal.StructureToPtr(wp, lParam, false);
       }
-      else if (msg == WM_ACTIVATE)
+      else if (msg == WindowMessage.ACTIVATE)
       {
         var abd = GetAppBarData();
-        SHAppBarMessage(ABM.ACTIVATE, ref abd);
+        SHAppBarMessage(AppBarMessage.ACTIVATE, ref abd);
       }
-      else if (msg == WM_WINDOWPOSCHANGED)
+      else if (msg == WindowMessage.WINDOWPOSCHANGED)
       {
         var abd = GetAppBarData();
-        SHAppBarMessage(ABM.WINDOWPOSCHANGED, ref abd);
+        SHAppBarMessage(AppBarMessage.WINDOWPOSCHANGED, ref abd);
       }
       else if (msg == AppBarMessageId)
       {
@@ -284,7 +285,7 @@ namespace WpfAppBar
       return IntPtr.Zero;
     }
 
-    private Rect WindowBounds
+    private Rectangle WindowBounds
     {
       set
       {
@@ -298,7 +299,7 @@ namespace WpfAppBar
 
   public enum AppBarDockMode
   {
-    Left = 0,
+    Left,
     Top,
     Right,
     Bottom
