@@ -10,15 +10,22 @@ using LarsWM.Domain.Monitors;
 
 namespace LarsWM.Bar
 {
+  public enum AppBarPosition
+  {
+    Left,
+    Top,
+    Right,
+    Bottom
+  }
+
   public class AppBarWindow : Window
   {
-    private Monitor _monitor;
-    private bool IsAppBarRegistered;
-    private bool IsInAppBarResize;
+    private Monitor _monitor = null;
+    private bool _isAppBarRegistered = false;
+    private bool _isInAppBarResize = false;
 
     static AppBarWindow()
     {
-      ShowInTaskbarProperty.OverrideMetadata(typeof(AppBarWindow), new FrameworkPropertyMetadata(false));
       MinHeightProperty.OverrideMetadata(typeof(AppBarWindow), new FrameworkPropertyMetadata(20d, MinMaxHeightWidth_Changed));
       MinWidthProperty.OverrideMetadata(typeof(AppBarWindow), new FrameworkPropertyMetadata(20d, MinMaxHeightWidth_Changed));
       MaxHeightProperty.OverrideMetadata(typeof(AppBarWindow), new FrameworkPropertyMetadata(MinMaxHeightWidth_Changed));
@@ -28,20 +35,21 @@ namespace LarsWM.Bar
     public AppBarWindow(Monitor monitor)
     {
       _monitor = monitor;
-      this.WindowStyle = WindowStyle.None;
-      this.ResizeMode = ResizeMode.NoResize;
-      this.Topmost = true;
+      WindowStyle = WindowStyle.None;
+      ResizeMode = ResizeMode.NoResize;
+      Topmost = true;
+      ShowInTaskbar = false;
     }
 
-    public AppBarDockMode DockMode
+    public AppBarPosition DockMode
     {
-      get { return (AppBarDockMode)GetValue(DockModeProperty); }
+      get { return (AppBarPosition)GetValue(DockModeProperty); }
       set { SetValue(DockModeProperty, value); }
     }
 
     public static readonly DependencyProperty DockModeProperty =
-      DependencyProperty.Register("DockMode", typeof(AppBarDockMode), typeof(AppBarWindow),
-      new FrameworkPropertyMetadata(AppBarDockMode.Left, DockLocation_Changed));
+      DependencyProperty.Register("DockMode", typeof(AppBarPosition), typeof(AppBarWindow),
+      new FrameworkPropertyMetadata(AppBarPosition.Left, DockLocation_Changed));
 
     public int DockedWidthOrHeight
     {
@@ -60,12 +68,12 @@ namespace LarsWM.Bar
 
       switch (@this.DockMode)
       {
-        case AppBarDockMode.Left:
-        case AppBarDockMode.Right:
+        case AppBarPosition.Left:
+        case AppBarPosition.Right:
           return BoundIntToDouble(newValue, @this.MinWidth, @this.MaxWidth);
 
-        case AppBarDockMode.Top:
-        case AppBarDockMode.Bottom:
+        case AppBarPosition.Top:
+        case AppBarPosition.Bottom:
           return BoundIntToDouble(newValue, @this.MinHeight, @this.MaxHeight);
 
         default: throw new NotSupportedException();
@@ -95,7 +103,7 @@ namespace LarsWM.Bar
     {
       var @this = (AppBarWindow)d;
 
-      if (@this.IsAppBarRegistered)
+      if (@this._isAppBarRegistered)
       {
         @this.OnDockLocationChanged();
       }
@@ -128,7 +136,7 @@ namespace LarsWM.Bar
       SHAppBarMessage(AppBarMessage.NEW, ref appBarData);
 
       // set our initial location
-      this.IsAppBarRegistered = true;
+      _isAppBarRegistered = true;
       OnDockLocationChanged();
     }
 
@@ -141,11 +149,11 @@ namespace LarsWM.Bar
         return;
       }
 
-      if (IsAppBarRegistered)
+      if (_isAppBarRegistered)
       {
         var abd = GetAppBarData();
         SHAppBarMessage(AppBarMessage.REMOVE, ref abd);
-        IsAppBarRegistered = false;
+        _isAppBarRegistered = false;
       }
     }
 
@@ -165,7 +173,7 @@ namespace LarsWM.Bar
 
     private void OnDockLocationChanged()
     {
-      if (IsInAppBarResize)
+      if (_isInAppBarResize)
       {
         return;
       }
@@ -187,30 +195,30 @@ namespace LarsWM.Bar
       var dockedWidthOrHeightInDesktopPixels = WpfDimensionToDesktop(DockedWidthOrHeight);
       switch (DockMode)
       {
-        case AppBarDockMode.Top:
+        case AppBarPosition.Top:
           appBarData.rc.Bottom = appBarData.rc.Top + dockedWidthOrHeightInDesktopPixels;
           break;
-        case AppBarDockMode.Bottom:
+        case AppBarPosition.Bottom:
           appBarData.rc.Top = appBarData.rc.Bottom - dockedWidthOrHeightInDesktopPixels;
           break;
-        case AppBarDockMode.Left:
+        case AppBarPosition.Left:
           appBarData.rc.Right = appBarData.rc.Left + dockedWidthOrHeightInDesktopPixels;
           break;
-        case AppBarDockMode.Right:
+        case AppBarPosition.Right:
           appBarData.rc.Left = appBarData.rc.Right - dockedWidthOrHeightInDesktopPixels;
           break;
         default: throw new NotSupportedException();
       }
 
       SHAppBarMessage(AppBarMessage.SETPOS, ref appBarData);
-      IsInAppBarResize = true;
+      _isInAppBarResize = true;
       try
       {
         WindowBounds = appBarData.rc;
       }
       finally
       {
-        IsInAppBarResize = false;
+        _isInAppBarResize = false;
       }
     }
 
@@ -225,14 +233,14 @@ namespace LarsWM.Bar
       };
     }
 
-    private static int _AppBarMessageId;
-    public static int AppBarMessageId
+    private int _AppBarMessageId;
+    public int AppBarMessageId
     {
       get
       {
         if (_AppBarMessageId == 0)
         {
-          _AppBarMessageId = RegisterWindowMessage("AppBarMessage_EEDFB5206FC3");
+          _AppBarMessageId = RegisterWindowMessage($"AppBarMessage_{_monitor.Name}");
         }
 
         return _AppBarMessageId;
@@ -241,7 +249,7 @@ namespace LarsWM.Bar
 
     public IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-      if (msg == (int)WindowMessage.WINDOWPOSCHANGING && !IsInAppBarResize)
+      if (msg == (int)WindowMessage.WINDOWPOSCHANGING && !_isInAppBarResize)
       {
         var wp = Marshal.PtrToStructure<WindowPos>(lParam);
         wp.flags |= SWP.SWP_NOMOVE | SWP.SWP_NOSIZE;
@@ -275,19 +283,11 @@ namespace LarsWM.Bar
     {
       set
       {
-        this.Left = DesktopDimensionToWpf(value.Left);
-        this.Top = DesktopDimensionToWpf(value.Top);
-        this.Width = DesktopDimensionToWpf(value.Right - value.Left);
-        this.Height = DesktopDimensionToWpf(value.Bottom - value.Top);
+        Left = DesktopDimensionToWpf(value.Left);
+        Top = DesktopDimensionToWpf(value.Top);
+        Width = DesktopDimensionToWpf(value.Right - value.Left);
+        Height = DesktopDimensionToWpf(value.Bottom - value.Top);
       }
     }
-  }
-
-  public enum AppBarDockMode
-  {
-    Left,
-    Top,
-    Right,
-    Bottom
   }
 }

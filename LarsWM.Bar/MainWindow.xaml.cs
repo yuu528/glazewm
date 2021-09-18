@@ -33,6 +33,9 @@ namespace LarsWM.Bar
       _workspaceService = workspaceService;
       _userConfigService = userConfigService;
 
+      DockedWidthOrHeight = userConfigService.UserConfig.Bar.Height;
+      DockMode = AppBarPosition.Top;
+
       InitializeComponent();
 
       RefreshState(monitor);
