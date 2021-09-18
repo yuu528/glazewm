@@ -18,7 +18,7 @@ namespace LarsWM.Bar
   /// <summary>
   /// Interaction logic for MainWindow.xaml
   /// </summary>
-  public partial class MainWindow
+  public partial class MainWindow : AppBarWindow
   {
     private Monitor _monitor { get; }
     private Bus _bus { get; }
@@ -26,7 +26,7 @@ namespace LarsWM.Bar
     private UserConfigService _userConfigService { get; }
     private ObservableCollection<Workspace> _workspaces = new ObservableCollection<Workspace>();
 
-    public MainWindow(Monitor monitor, WorkspaceService workspaceService, Bus bus, UserConfigService userConfigService)
+    public MainWindow(Monitor monitor, WorkspaceService workspaceService, Bus bus, UserConfigService userConfigService) : base(monitor)
     {
       _monitor = monitor;
       _bus = bus;

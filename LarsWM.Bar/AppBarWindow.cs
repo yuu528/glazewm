@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -10,11 +6,13 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using static LarsWM.Infrastructure.WindowsApi.WindowsApiService;
 using LarsWM.Infrastructure.WindowsApi;
+using LarsWM.Domain.Monitors;
 
 namespace LarsWM.Bar
 {
   public class AppBarWindow : Window
   {
+    private Monitor _monitor;
     private bool IsAppBarRegistered;
     private bool IsInAppBarResize;
 
@@ -27,8 +25,9 @@ namespace LarsWM.Bar
       MaxWidthProperty.OverrideMetadata(typeof(AppBarWindow), new FrameworkPropertyMetadata(MinMaxHeightWidth_Changed));
     }
 
-    public AppBarWindow()
+    public AppBarWindow(Monitor monitor)
     {
+      _monitor = monitor;
       this.WindowStyle = WindowStyle.None;
       this.ResizeMode = ResizeMode.NoResize;
       this.Topmost = true;
@@ -41,18 +40,8 @@ namespace LarsWM.Bar
     }
 
     public static readonly DependencyProperty DockModeProperty =
-        DependencyProperty.Register("DockMode", typeof(AppBarDockMode), typeof(AppBarWindow),
-            new FrameworkPropertyMetadata(AppBarDockMode.Left, DockLocation_Changed));
-
-    public MonitorInfo Monitor
-    {
-      get { return (MonitorInfo)GetValue(MonitorProperty); }
-      set { SetValue(MonitorProperty, value); }
-    }
-
-    public static readonly DependencyProperty MonitorProperty =
-        DependencyProperty.Register("Monitor", typeof(MonitorInfo), typeof(AppBarWindow),
-            new FrameworkPropertyMetadata(null, DockLocation_Changed));
+      DependencyProperty.Register("DockMode", typeof(AppBarDockMode), typeof(AppBarWindow),
+      new FrameworkPropertyMetadata(AppBarDockMode.Left, DockLocation_Changed));
 
     public int DockedWidthOrHeight
     {
@@ -61,8 +50,8 @@ namespace LarsWM.Bar
     }
 
     public static readonly DependencyProperty DockedWidthOrHeightProperty =
-        DependencyProperty.Register("DockedWidthOrHeight", typeof(int), typeof(AppBarWindow),
-            new FrameworkPropertyMetadata(200, DockLocation_Changed, DockedWidthOrHeight_Coerce));
+      DependencyProperty.Register("DockedWidthOrHeight", typeof(int), typeof(AppBarWindow),
+      new FrameworkPropertyMetadata(200, DockLocation_Changed, DockedWidthOrHeight_Coerce));
 
     private static object DockedWidthOrHeight_Coerce(DependencyObject d, object baseValue)
     {
@@ -182,7 +171,16 @@ namespace LarsWM.Bar
       }
 
       var appBarData = GetAppBarData();
-      appBarData.rc = (Rectangle)GetSelectedMonitor().ViewportBounds;
+
+      var monitorRect = new Rectangle()
+      {
+        Left = _monitor.Screen.WorkingArea.Left,
+        Right = _monitor.Screen.WorkingArea.Right,
+        Top = _monitor.Screen.WorkingArea.Top,
+        Bottom = _monitor.Screen.WorkingArea.Bottom,
+      };
+
+      appBarData.rc = monitorRect;
 
       SHAppBarMessage(AppBarMessage.QUERYPOS, ref appBarData);
 
@@ -216,18 +214,6 @@ namespace LarsWM.Bar
       }
     }
 
-    private MonitorInfo GetSelectedMonitor()
-    {
-      var monitor = this.Monitor;
-      var allMonitors = MonitorInfo.GetAllMonitors();
-      if (monitor == null || !allMonitors.Contains(monitor))
-      {
-        monitor = allMonitors.First(f => f.IsPrimary);
-      }
-
-      return monitor;
-    }
-
     private AppBarData GetAppBarData()
     {
       return new AppBarData()
@@ -255,18 +241,18 @@ namespace LarsWM.Bar
 
     public IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-      if (msg == WindowMessage.WINDOWPOSCHANGING && !IsInAppBarResize)
+      if (msg == (int)WindowMessage.WINDOWPOSCHANGING && !IsInAppBarResize)
       {
         var wp = Marshal.PtrToStructure<WindowPos>(lParam);
         wp.flags |= SWP.SWP_NOMOVE | SWP.SWP_NOSIZE;
         Marshal.StructureToPtr(wp, lParam, false);
       }
-      else if (msg == WindowMessage.ACTIVATE)
+      else if (msg == (int)WindowMessage.ACTIVATE)
       {
         var abd = GetAppBarData();
         SHAppBarMessage(AppBarMessage.ACTIVATE, ref abd);
       }
-      else if (msg == WindowMessage.WINDOWPOSCHANGED)
+      else if (msg == (int)WindowMessage.WINDOWPOSCHANGED)
       {
         var abd = GetAppBarData();
         SHAppBarMessage(AppBarMessage.WINDOWPOSCHANGED, ref abd);
@@ -291,8 +277,8 @@ namespace LarsWM.Bar
       {
         this.Left = DesktopDimensionToWpf(value.Left);
         this.Top = DesktopDimensionToWpf(value.Top);
-        this.Width = DesktopDimensionToWpf(value.Width);
-        this.Height = DesktopDimensionToWpf(value.Height);
+        this.Width = DesktopDimensionToWpf(value.Right - value.Left);
+        this.Height = DesktopDimensionToWpf(value.Bottom - value.Top);
       }
     }
   }
