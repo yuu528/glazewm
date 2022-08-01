@@ -76,6 +76,7 @@ namespace GlazeWM.Domain
       services.AddSingleton<IEventHandler<WindowMinimizedEvent>, WindowMinimizedHandler>();
       services.AddSingleton<IEventHandler<WindowMinimizeEndedEvent>, WindowMinimizeEndedHandler>();
       services.AddSingleton<IEventHandler<WindowMovedOrResizedEvent>, WindowMovedOrResizedHandler>();
+      services.AddSingleton<IEventHandler<WindowMoveOrResizeStartedEvent>, WindowMoveOrResizeStartedHandler>();
       services.AddSingleton<IEventHandler<WindowShownEvent>, WindowShownHandler>();
 
       return services;
