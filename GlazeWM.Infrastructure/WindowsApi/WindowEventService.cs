@@ -32,7 +32,7 @@ namespace GlazeWM.Infrastructure.WindowsApi
       SetWinEventHook(EventConstant.EVENT_OBJECT_LOCATIONCHANGE, EventConstant.EVENT_OBJECT_LOCATIONCHANGE, IntPtr.Zero, WindowEventHookProc, 0, 0, 0);
       SetWinEventHook(EventConstant.EVENT_OBJECT_DESTROY, EventConstant.EVENT_OBJECT_HIDE, IntPtr.Zero, WindowEventHookProc, 0, 0, 0);
       SetWinEventHook(EventConstant.EVENT_SYSTEM_MINIMIZESTART, EventConstant.EVENT_SYSTEM_MINIMIZEEND, IntPtr.Zero, WindowEventHookProc, 0, 0, 0);
-      SetWinEventHook(EventConstant.EVENT_SYSTEM_MOVESIZEEND, EventConstant.EVENT_SYSTEM_MOVESIZEEND, IntPtr.Zero, WindowEventHookProc, 0, 0, 0);
+      SetWinEventHook(EventConstant.EVENT_SYSTEM_MOVESIZESTART, EventConstant.EVENT_SYSTEM_MOVESIZEEND, IntPtr.Zero, WindowEventHookProc, 0, 0, 0);
       SetWinEventHook(EventConstant.EVENT_SYSTEM_FOREGROUND, EventConstant.EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, WindowEventHookProc, 0, 0, 0);
 
       // `SetWinEventHook` requires a message loop within the thread that is executing the code.
@@ -55,6 +55,7 @@ namespace GlazeWM.Infrastructure.WindowsApi
         EventConstant.EVENT_SYSTEM_MINIMIZESTART => new WindowMinimizedEvent(hwnd),
         EventConstant.EVENT_SYSTEM_MINIMIZEEND => new WindowMinimizeEndedEvent(hwnd),
         EventConstant.EVENT_SYSTEM_MOVESIZEEND => new WindowMovedOrResizedEvent(hwnd),
+        EventConstant.EVENT_SYSTEM_MOVESIZESTART => new WindowMoveOrResizeStartedEvent(hwnd),
         EventConstant.EVENT_OBJECT_DESTROY => new WindowDestroyedEvent(hwnd),
         EventConstant.EVENT_OBJECT_SHOW => new WindowShownEvent(hwnd),
         EventConstant.EVENT_OBJECT_HIDE => new WindowHiddenEvent(hwnd),
