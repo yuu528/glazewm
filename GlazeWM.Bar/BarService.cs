@@ -3,6 +3,7 @@ using GlazeWM.Domain.Monitors.Events;
 using GlazeWM.Domain.UserConfigs.Events;
 using GlazeWM.Infrastructure.Bussing;
 using GlazeWM.Infrastructure.Exceptions;
+using GlazeWM.Infrastructure.Utils;
 using System.Reactive.Linq;
 using System;
 using System.Threading;
@@ -118,9 +119,11 @@ namespace GlazeWM.Bar
     /// <exception cref="ArgumentException"></exception>
     public static string ShorthandToXamlProperty(string shorthand)
     {
-      var shorthandParts = shorthand.Split(" ");
+      var shorthandParts = shorthand.Split(" ")
+        .Select(shorthandPart => UnitsHelper.TrimUnits(shorthandPart))
+        .ToList();
 
-      return shorthandParts.Length switch
+      return shorthandParts.Count switch
       {
         1 => shorthand,
         2 => $"{shorthandParts[1]},{shorthandParts[0]},{shorthandParts[1]},{shorthandParts[0]}",
