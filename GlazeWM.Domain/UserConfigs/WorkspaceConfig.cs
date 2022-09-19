@@ -7,6 +7,9 @@ namespace GlazeWM.Domain.UserConfigs
     [Required]
     public string Name { get; set; }
 
+    /// <summary>
+    /// If a monitor index is provided, change to device name format (eg. "\\.\DISPLAY1").
+    /// </summary>
     private string _bindToMonitor;
     public string BindToMonitor
     {
