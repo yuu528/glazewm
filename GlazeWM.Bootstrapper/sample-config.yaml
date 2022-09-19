@@ -10,7 +10,7 @@ bar:
   foreground: "white"
   font_family: "Segoe UI"
   font_size: "13"
-  padding: "1 6 1 6"
+  padding: "1px 6px 1px 6px"
   components_left:
     - type: "workspaces"
       focused_workspace_background: "#8192B3"
