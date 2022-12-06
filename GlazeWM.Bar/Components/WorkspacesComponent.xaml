@@ -16,25 +16,26 @@
 
     <ItemsControl.ItemTemplate>
       <DataTemplate>
-        <Border
-          x:Name="WorkspaceButtonBorder"
+        <Button
+          x:Name="WorkspaceButton"
+          Content="{Binding DisplayName}"
+          Padding="8,0"
+          Command="{Binding DataContext.FocusWorkspaceCommand, ElementName=_workspacesComponent}"
+          CommandParameter="{Binding Name}"
+          Background="{Binding DataContext.DefaultWorkspaceBackground, ElementName=_workspacesComponent}"
+          Foreground="{Binding DataContext.DefaultWorkspaceForeground, ElementName=_workspacesComponent}"
+          BorderBrush="{Binding DataContext.DefaultWorkspaceBorderColor, ElementName=_workspacesComponent}"
+          FontFamily="{Binding DataContext.FontFamily, ElementName=_workspacesComponent}"
+          FontWeight="{Binding DataContext.FontWeight, ElementName=_workspacesComponent}"
+          FontSize="{Binding DataContext.FontSize, ElementName=_workspacesComponent}"
           BorderThickness="{Binding DataContext.DefaultWorkspaceBorderWidth, ElementName=_workspacesComponent}"
-          BorderBrush="{Binding DataContext.DefaultWorkspaceBorderColor, ElementName=_workspacesComponent}">
-          <Button
-            x:Name="WorkspaceButton"
-            Content="{Binding DisplayName}"
-            Padding="8,0"
-            Command="{Binding DataContext.FocusWorkspaceCommand, ElementName=_workspacesComponent}"
-            CommandParameter="{Binding Name}"
-            Background="{Binding DataContext.DefaultWorkspaceBackground, ElementName=_workspacesComponent}"
-            Foreground="{Binding DataContext.DefaultWorkspaceForeground, ElementName=_workspacesComponent}"
-            FontFamily="{Binding DataContext.FontFamily, ElementName=_workspacesComponent}"
-            FontWeight="{Binding DataContext.FontWeight, ElementName=_workspacesComponent}"
-            FontSize="{Binding DataContext.FontSize, ElementName=_workspacesComponent}"
-            BorderBrush="Transparent"
-            BorderThickness="0"
-            Cursor="Hand" />
-        </Border>
+          Cursor="Hand" >
+          <Button.Template>
+              <ControlTemplate TargetType="Button">
+                  <ContentPresenter Content="{TemplateBinding Content}"/>
+              </ControlTemplate>
+          </Button.Template>
+        </Button>
 
         <DataTemplate.Triggers>
           <DataTrigger
@@ -49,11 +50,11 @@
               Property="Foreground"
               Value="{Binding DataContext.DisplayedWorkspaceForeground, ElementName=_workspacesComponent}" />
             <Setter
-              TargetName="WorkspaceButtonBorder"
+              TargetName="WorkspaceButton"
               Property="BorderBrush"
               Value="{Binding DataContext.DisplayedWorkspaceBorderColor, ElementName=_workspacesComponent}" />
             <Setter
-              TargetName="WorkspaceButtonBorder"
+              TargetName="WorkspaceButton"
               Property="BorderThickness"
               Value="{Binding DataContext.DisplayedWorkspaceBorderWidth, ElementName=_workspacesComponent}" />
           </DataTrigger>
@@ -70,11 +71,11 @@
               Property="Foreground"
               Value="{Binding DataContext.FocusedWorkspaceForeground, ElementName=_workspacesComponent}" />
             <Setter
-              TargetName="WorkspaceButtonBorder"
+              TargetName="WorkspaceButton"
               Property="BorderBrush"
               Value="{Binding DataContext.FocusedWorkspaceBorderColor, ElementName=_workspacesComponent}" />
             <Setter
-              TargetName="WorkspaceButtonBorder"
+              TargetName="WorkspaceButton"
               Property="BorderThickness"
               Value="{Binding DataContext.FocusedWorkspaceBorderWidth, ElementName=_workspacesComponent}" />
           </DataTrigger>
