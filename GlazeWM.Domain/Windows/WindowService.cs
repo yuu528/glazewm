@@ -162,6 +162,12 @@ namespace GlazeWM.Domain.Windows
 
     public static bool IsHandleManageable(IntPtr handle)
     {
+      var processName = GetProcessOfHandle(handle).ProcessName;
+      var title = GetTitleOfHandle(handle);
+
+      if (processName == "Flow.Launcher" && title == "Flow.Launcher")
+        return true;
+
       // Ignore windows that are hidden.
       if (!IsHandleVisible(handle))
         return false;
