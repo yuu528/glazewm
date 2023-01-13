@@ -1,4 +1,4 @@
-﻿using GlazeWM.Domain.Containers;
+using GlazeWM.Domain.Containers;
 using GlazeWM.Domain.Containers.Commands;
 using GlazeWM.Domain.Windows.Commands;
 using GlazeWM.Infrastructure.Bussing;
@@ -41,11 +41,13 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
         return isVisible && canFocus;
       });
 
+      var isHideEvent = IsWindow(window.Handle);
+
       // The OS automatically switches focus to a different window after closing. If
       // there are focusable windows, then set focus *after* the OS sets focus. This will
       // cause focus to briefly flicker to the OS focus target and then to the WM's focus
       // target.
-      if (hasFocusableWindows)
+      if (hasFocusableWindows && !isHideEvent)
       {
         _containerService.PendingFocusContainer = focusTarget;
         return CommandResponse.Ok;
