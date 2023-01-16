@@ -1,3 +1,4 @@
+﻿using System.Diagnostics;
 using GlazeWM.Domain.Containers;
 using GlazeWM.Domain.Containers.Commands;
 using GlazeWM.Domain.Windows.Commands;
@@ -22,12 +23,19 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       var window = command.Window;
 
       // Get container to switch focus to after the window has been removed.
-      var focusTarget = WindowService.GetFocusTargetAfterRemoval(window);
+      var isFocused = window == _containerService.FocusedContainer;
+      var focusTarget = isFocused
+        ? WindowService.GetFocusTargetAfterRemoval(window)
+        : null;
 
       if (window is IResizable)
         _bus.Invoke(new DetachAndResizeContainerCommand(window));
       else
         _bus.Invoke(new DetachContainerCommand(window));
+
+      // Avoid re-assigning focus if the unmanaged window did not have focus.
+      if (focusTarget is null)
+        return CommandResponse.Ok;
 
       var hasFocusableWindows = WindowService.GetAllWindowHandles().Exists(handle =>
       {
@@ -49,10 +57,12 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       // target.
       if (hasFocusableWindows && !isHideEvent)
       {
+        Debug.WriteLine("Window hidden and has focusable windows.");
         _containerService.PendingFocusContainer = focusTarget;
         return CommandResponse.Ok;
       }
 
+      Debug.WriteLine("Window hidden and does NOT have focusable windows.");
       _bus.Invoke(new SetNativeFocusCommand(focusTarget));
       return CommandResponse.Ok;
     }
