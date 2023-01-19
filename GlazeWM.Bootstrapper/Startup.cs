@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Forms;
@@ -79,6 +80,11 @@ namespace GlazeWM.Bootstrapper
         // Add application to system tray.
         _systemTrayIcon = new SystemTrayIcon(systemTrayIconConfig);
         _systemTrayIcon.Show();
+
+        MouseEvents.MouseMoves.Subscribe(e =>
+        {
+          Debug.WriteLine($"eee {e}");
+        });
 
         Application.Run();
       }
