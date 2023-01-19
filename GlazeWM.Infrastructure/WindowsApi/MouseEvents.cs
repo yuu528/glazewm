@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reactive.Threading.Tasks;
 using System.Runtime.InteropServices;
 using static GlazeWM.Infrastructure.WindowsApi.WindowsApiService;
 
@@ -32,12 +33,16 @@ namespace GlazeWM.Infrastructure.WindowsApi
 
         return Observable.Create<LowLevelMouseInputEvent>(observer =>
         {
-          var subscription = mouseEvents.Subscribe(e => observer.OnNext(e));
+          var subscription = mouseEvents.Subscribe(
+            mouseEvent => observer.OnNext(mouseEvent)
+          );
 
           return Disposable.Create(() =>
           {
-            // clean up hook
+            // Unregister mouse hook on observable completion.
             subscription.Dispose();
+            UnhookWindowsHookEx(hookId);
+            GC.KeepAlive(hookProc);
           });
         });
       }
