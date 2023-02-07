@@ -2,6 +2,7 @@ using GlazeWM.Domain.Containers;
 using GlazeWM.Domain.Containers.Commands;
 using GlazeWM.Domain.Windows.Commands;
 using GlazeWM.Infrastructure.Bussing;
+using static GlazeWM.Infrastructure.WindowsApi.WindowsApiService;
 
 namespace GlazeWM.Domain.Windows.CommandHandlers
 {
@@ -34,9 +35,16 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       // target.
 
       _bus.Invoke(new RedrawContainersCommand());
-      _containerService.PendingFocusContainer = focusTarget;
-      _bus.InvokeAsync(new SetNativeFocusCommand(focusTarget));
 
+      var foregroundWindow = GetForegroundWindow();
+
+      if (foregroundWindow == GetDesktopWindow())
+      {
+        _bus.Invoke(new SetNativeFocusCommand(focusTarget));
+        return CommandResponse.Ok;
+      }
+
+      _containerService.PendingFocusContainer = focusTarget;
       return CommandResponse.Ok;
     }
   }
