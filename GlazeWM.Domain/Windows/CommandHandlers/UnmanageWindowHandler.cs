@@ -10,11 +10,16 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
   {
     private readonly Bus _bus;
     private readonly ContainerService _containerService;
+    private readonly WindowService _windowService;
 
-    public UnmanageWindowHandler(Bus bus, ContainerService containerService)
+    public UnmanageWindowHandler(
+      Bus bus,
+      ContainerService containerService,
+      WindowService windowService)
     {
       _bus = bus;
       _containerService = containerService;
+      _windowService = windowService;
     }
 
     public CommandResponse Handle(UnmanageWindowCommand command)
@@ -29,22 +34,33 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       else
         _bus.Invoke(new DetachContainerCommand(window));
 
-      // The OS automatically switches focus to a different window after closing. If
-      // there are focusable windows, then set focus *after* the OS sets focus. This will
-      // cause focus to briefly flicker to the OS focus target and then to the WM's focus
-      // target.
-
       _bus.Invoke(new RedrawContainersCommand());
 
       var foregroundWindow = GetForegroundWindow();
+      var desktopWindow = _windowService.DesktopWindowHandle;
 
-      if (foregroundWindow == GetDesktopWindow())
+      // If focus has been set to the desktop window, then immediately reassign focus.
+      // This happens after all windows have been closed.
+      if (foregroundWindow == desktopWindow)
       {
         _bus.Invoke(new SetNativeFocusCommand(focusTarget));
         return CommandResponse.Ok;
       }
 
+      // If focus has been retained by the closed window, then immediately reassign focus.
+      // This happens with certain Electron apps (eg. Discord, Slack).
+      if (foregroundWindow == window.Handle && !WindowService.IsHandleVisible(window.Handle))
+      {
+        _bus.Invoke(new SetNativeFocusCommand(focusTarget));
+        return CommandResponse.Ok;
+      }
+
+      // The OS automatically switches focus to a different window after closing. If
+      // there are focusable windows, then set focus *after* the OS sets focus. This will
+      // cause focus to briefly flicker to the OS focus target and then to the WM's focus
+      // target.
       _containerService.PendingFocusContainer = focusTarget;
+
       return CommandResponse.Ok;
     }
   }
