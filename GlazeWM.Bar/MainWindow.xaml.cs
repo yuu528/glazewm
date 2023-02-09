@@ -51,6 +51,7 @@ namespace GlazeWM.Bar
     {
       var exstyle = (int)GetWindowLongPtr(windowHandle, GWLEXSTYLE);
       exstyle |= (int)WindowStylesEx.ToolWindow;
+      exstyle |= (int)WindowStylesEx.NoActivate;
       SetWindowLongPtr(windowHandle, GWLEXSTYLE, (IntPtr)exstyle);
     }
 
