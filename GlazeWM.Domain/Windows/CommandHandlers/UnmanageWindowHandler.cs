@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using GlazeWM.Domain.Containers;
 using GlazeWM.Domain.Containers.Commands;
 using GlazeWM.Domain.Windows.Commands;
@@ -39,10 +40,18 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       var foregroundWindow = GetForegroundWindow();
       var desktopWindow = _windowService.DesktopWindowHandle;
 
+      var className = WindowService.GetClassNameOfHandle(foregroundWindow);
+      var processName = WindowService.GetProcessOfHandle(foregroundWindow).ProcessName;
+      Debug.WriteLine("===========");
+      Debug.WriteLine($"WM focus target: {focusTarget}");
+      Debug.WriteLine($"OS focus: className {className}");
+      Debug.WriteLine($"OS focus: processName {processName}");
+
       // If focus has been set to the desktop window, then immediately reassign focus.
       // This happens after all windows have been closed.
       if (foregroundWindow == desktopWindow)
       {
+        Debug.WriteLine("Desktop window has OS focus");
         _bus.Invoke(new SetNativeFocusCommand(focusTarget));
         return CommandResponse.Ok;
       }
@@ -51,6 +60,7 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       // This happens with certain Electron apps (eg. Discord, Slack).
       if (foregroundWindow == window.Handle && !WindowService.IsHandleVisible(window.Handle))
       {
+        Debug.WriteLine("Original window still has OS focus (even though it's hidden)");
         _bus.Invoke(new SetNativeFocusCommand(focusTarget));
         return CommandResponse.Ok;
       }
