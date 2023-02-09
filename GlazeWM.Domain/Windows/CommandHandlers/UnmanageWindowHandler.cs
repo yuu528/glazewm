@@ -28,7 +28,10 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       var window = command.Window;
 
       // Get container to switch focus to after the window has been removed.
-      var focusTarget = WindowService.GetFocusTargetAfterRemoval(window);
+      var isFocused = window == _containerService.FocusedContainer;
+      var focusTarget = isFocused
+        ? WindowService.GetFocusTargetAfterRemoval(window)
+        : null;
 
       if (window is IResizable)
         _bus.Invoke(new DetachAndResizeContainerCommand(window));
@@ -36,6 +39,10 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
         _bus.Invoke(new DetachContainerCommand(window));
 
       _bus.Invoke(new RedrawContainersCommand());
+
+      // Avoid reassigning focus if the unmanaged window did not have focus.
+      if (focusTarget is null)
+        return CommandResponse.Ok;
 
       var foregroundWindow = GetForegroundWindow();
       var desktopWindow = _windowService.DesktopWindowHandle;
