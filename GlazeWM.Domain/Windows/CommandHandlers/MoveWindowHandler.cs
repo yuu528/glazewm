@@ -66,14 +66,16 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       }
 
       // Attempt to the move window to workspace in given direction.
-      if (parentMatchesLayout && windowToMove.Parent is Workspace)
+      if (
+        (parentMatchesLayout && windowToMove.Parent is Workspace) ||
+        (!windowToMove.SiblingsOfType<IResizable>().Any() && windowToMove.Parent is Workspace))
       {
         MoveToWorkspaceInDirection(windowToMove, direction);
         return;
       }
 
-      // The window cannot be moved within the parent container, so traverse upwards to find a
-      // suitable ancestor to move to.
+      // The window cannot be moved within the parent container, so traverse upwards to
+      // find a suitable ancestor to move to.
       var ancestorWithLayout = windowToMove.Parent.Ancestors.FirstOrDefault(
         container => (container as SplitContainer)?.Layout == layoutForDirection
       ) as SplitContainer;
@@ -136,6 +138,7 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
         targetParent.Layout != layoutForDirection ||
         direction == Direction.Up ||
         direction == Direction.Left;
+
       var insertionIndex = shouldInsertAfter ? targetDescendant.Index + 1 : targetDescendant.Index;
 
       _bus.Invoke(

@@ -42,8 +42,10 @@ namespace GlazeWM.Domain.Containers.CommandHandlers
       if (currentLayout == newLayout)
         return;
 
+      var hasResizableSiblings = window.SiblingsOfType<IResizable>().Any();
+
       // If the window is an only child of a workspace, change layout of the workspace.
-      if (!window.HasSiblings() && parent is Workspace)
+      if (window.Parent is Workspace && !hasResizableSiblings)
       {
         ChangeWorkspaceLayout(parent as Workspace, newLayout);
         return;
@@ -51,7 +53,7 @@ namespace GlazeWM.Domain.Containers.CommandHandlers
 
       // If the window is an only child and the parent is a normal split container, then flatten
       // the split container.
-      if (!window.HasSiblings())
+      if (!hasResizableSiblings)
       {
         _bus.Invoke(new FlattenSplitContainerCommand(parent));
         return;
