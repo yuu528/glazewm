@@ -79,10 +79,15 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
         container => (container as SplitContainer)?.Layout == layoutForDirection
       );
 
-      // If there is no suitable ancestor, then change the layout of the workspace.
-      ancestorWithLayout ??= ChangeWorkspaceLayout(windowToMove, layoutForDirection);
+      if (ancestorWithLayout is not null)
+      {
+        InsertIntoAncestor(windowToMove, direction, ancestorWithLayout);
+        return;
+      }
 
-      InsertIntoAncestor(windowToMove, direction, ancestorWithLayout);
+      // If there is no suitable ancestor, then change the layout of the workspace.
+      // ChangeWorkspaceLayout(windowToMove, layoutForDirection);
+      ChangeWorkspaceLayout(windowToMove, direction);
     }
 
     /// <summary>
@@ -172,13 +177,43 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       _bus.Emit(new FocusChangedEvent(windowToMove));
     }
 
-    private Workspace ChangeWorkspaceLayout(Window windowToMove, Layout layout)
+    // private void ChangeWorkspaceLayout(Window windowToMove, Layout layout)
+    private void ChangeWorkspaceLayout(Window windowToMove, Direction direction)
     {
       var workspace = windowToMove.Ancestors.OfType<Workspace>().First();
 
-      _bus.Invoke(new ChangeContainerLayoutCommand(workspace, layout));
+      var layoutForDirection = direction.GetCorrespondingLayout();
+      _bus.Invoke(new ChangeContainerLayoutCommand(workspace, layoutForDirection));
 
-      return workspace;
+      // Create a new split container to wrap siblings.
+      var splitContainer = new SplitContainer
+      {
+        Layout = layoutForDirection.Inverse(),
+        // Children = windowToMove.Parent.Children.Where(con => con != windowToMove).ToList(),
+        // ChildFocusOrder = windowToMove.Parent.ChildFocusOrder.Where(con => con != windowToMove).ToList(),
+      };
+
+      var siblings = windowToMove.Parent.ChildFocusOrder
+        .Where(child => child != windowToMove)
+        .Reverse();
+
+      // TODO: Create command `WrapInSplitContainer` (can be re-used for
+      // `ChangeContainerLayoutHandler`).
+      foreach (var sibling in siblings)
+      {
+        _bus.Invoke(new DetachContainerCommand(sibling));
+        _bus.Invoke(new AttachContainerCommand(sibling, splitContainer));
+      }
+
+      var insertionIndex = direction is Direction.Up or Direction.Left
+        ? 0
+        : 1;
+
+      _bus.Invoke(
+        new AttachAndResizeContainerCommand(splitContainer, workspace, insertionIndex)
+      );
+
+      _bus.Invoke(new RedrawContainersCommand());
     }
 
     private void InsertIntoAncestor(
@@ -188,7 +223,7 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
     {
       // Traverse up from `windowToMove` to find container where the parent is `ancestorWithLayout`.
       // Then, depending on the direction, insert before or after that container.
-      var insertionReference = windowToMove.SelfAndAncestors
+      var insertionReference = windowToMove.Ancestors
         .FirstOrDefault(container => container.Parent == ancestorWithLayout);
 
       var insertionReferenceSibling = direction is Direction.Up or Direction.Left
