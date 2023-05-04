@@ -189,13 +189,18 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       var splitContainer = new SplitContainer
       {
         Layout = layoutForDirection.Inverse(),
+        SizePercentage = 0.5,
         // Children = windowToMove.Parent.Children.Where(con => con != windowToMove).ToList(),
         // ChildFocusOrder = windowToMove.Parent.ChildFocusOrder.Where(con => con != windowToMove).ToList(),
       };
 
       var siblings = windowToMove.Parent.ChildFocusOrder
-        .Where(child => child != windowToMove)
+        .Where(child => child != windowToMove && child is IResizable)
         .Reverse();
+
+      // var resizableSiblings = siblings.OfType<IResizable>();
+      var sizePercentageIncrement =
+        (windowToMove as TilingWindow).SizePercentage / siblings.Count();
 
       // TODO: Create command `WrapInSplitContainer` (can be re-used for
       // `ChangeContainerLayoutHandler`).
@@ -203,15 +208,15 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       {
         _bus.Invoke(new DetachContainerCommand(sibling));
         _bus.Invoke(new AttachContainerCommand(sibling, splitContainer));
+        (sibling as IResizable).SizePercentage += sizePercentageIncrement;
       }
 
       var insertionIndex = direction is Direction.Up or Direction.Left
         ? 0
         : 1;
 
-      _bus.Invoke(
-        new AttachAndResizeContainerCommand(splitContainer, workspace, insertionIndex)
-      );
+      (windowToMove as IResizable).SizePercentage = 0.5;
+      _bus.Invoke(new AttachContainerCommand(splitContainer, workspace, insertionIndex));
 
       _bus.Invoke(new RedrawContainersCommand());
     }
