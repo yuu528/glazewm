@@ -53,6 +53,41 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       return CommandResponse.Fail;
     }
 
+    private void MoveTilingWindow(TilingWindow windowToMove, Direction direction)
+    {
+      var layoutForDirection = direction.GetCorrespondingLayout();
+      var parentMatchesLayout =
+        (windowToMove.Parent as SplitContainer).Layout == direction.GetCorrespondingLayout();
+
+      if (parentMatchesLayout && HasSiblingInDirection(windowToMove, direction))
+      {
+        SwapSiblingContainers(windowToMove, direction);
+        return;
+      }
+
+      // Attempt to the move window to workspace in given direction.
+      if (parentMatchesLayout && windowToMove.Parent is Workspace)
+      {
+        MoveToWorkspaceInDirection(windowToMove, direction);
+        return;
+      }
+
+      // The window cannot be moved within the parent container, so traverse upwards to find a
+      // suitable ancestor to move to.
+      var ancestorWithLayout = windowToMove.Parent.Ancestors.FirstOrDefault(
+        container => (container as SplitContainer)?.Layout == layoutForDirection
+      ) as SplitContainer;
+
+      if (ancestorWithLayout is not null)
+      {
+        InsertIntoAncestor(windowToMove, direction, ancestorWithLayout);
+        return;
+      }
+
+      // Change the layout of the workspace to layout for direction.
+      ChangeWorkspaceLayout(windowToMove, direction);
+    }
+
     /// <summary>
     /// Whether the window has a tiling sibling in the given direction.
     /// </summary>
@@ -174,6 +209,7 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
           insertionReferenceSibling,
           direction.Inverse()
         );
+
         var targetParent = targetDescendant.Parent as SplitContainer;
 
         var layoutForDirection = direction.GetCorrespondingLayout();
@@ -198,41 +234,6 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       }
 
       _bus.Invoke(new RedrawContainersCommand());
-    }
-
-    private void MoveTilingWindow(TilingWindow windowToMove, Direction direction)
-    {
-      var layoutForDirection = direction.GetCorrespondingLayout();
-      var parentMatchesLayout =
-        (windowToMove.Parent as SplitContainer).Layout == direction.GetCorrespondingLayout();
-
-      if (parentMatchesLayout && HasSiblingInDirection(windowToMove, direction))
-      {
-        SwapSiblingContainers(windowToMove, direction);
-        return;
-      }
-
-      // Attempt to the move window to workspace in given direction.
-      if (parentMatchesLayout && windowToMove.Parent is Workspace)
-      {
-        MoveToWorkspaceInDirection(windowToMove, direction);
-        return;
-      }
-
-      // The window cannot be moved within the parent container, so traverse upwards to find a
-      // suitable ancestor to move to.
-      var ancestorWithLayout = windowToMove.Parent.Ancestors.FirstOrDefault(
-        container => (container as SplitContainer)?.Layout == layoutForDirection
-      ) as SplitContainer;
-
-      // Change the layout of the workspace to layout for direction.
-      if (ancestorWithLayout == null)
-      {
-        ChangeWorkspaceLayout(windowToMove, direction);
-        return;
-      }
-
-      InsertIntoAncestor(windowToMove, direction, ancestorWithLayout);
     }
 
     private void MoveFloatingWindow(Window windowToMove, Direction direction)
