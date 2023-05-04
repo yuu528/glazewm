@@ -74,23 +74,15 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
         return;
       }
 
-      // What exactly are the conditions when the layout should change? When should
-      // the container be moved to a parent/ancestor?
-
-      // The window cannot be moved within the parent container, so traverse upwards to
-      // find a suitable ancestor to move to.
-      var ancestorWithLayout = windowToMove.Parent.Ancestors.FirstOrDefault(
+      // Find an ancestor that the window can be moved to.
+      var ancestorWithLayout = windowToMove.Ancestors.FirstOrDefault(
         container => (container as SplitContainer)?.Layout == layoutForDirection
-      ) as SplitContainer;
+      );
 
-      if (ancestorWithLayout is not null)
-      {
-        InsertIntoAncestor(windowToMove, direction, ancestorWithLayout);
-        return;
-      }
+      // If there is no suitable ancestor, then change the layout of the workspace.
+      ancestorWithLayout ??= ChangeWorkspaceLayout(windowToMove, layoutForDirection);
 
-      // Change the layout of the workspace to layout for direction.
-      ChangeWorkspaceLayout(windowToMove, direction);
+      InsertIntoAncestor(windowToMove, direction, ancestorWithLayout);
     }
 
     /// <summary>
@@ -180,18 +172,13 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       _bus.Emit(new FocusChangedEvent(windowToMove));
     }
 
-    private void ChangeWorkspaceLayout(Window windowToMove, Direction direction)
+    private Workspace ChangeWorkspaceLayout(Window windowToMove, Layout layout)
     {
-      var workspace = WorkspaceService.GetWorkspaceFromChildContainer(windowToMove);
+      var workspace = windowToMove.Ancestors.OfType<Workspace>().First();
 
-      var layoutForDirection = direction.GetCorrespondingLayout();
-      _bus.Invoke(new ChangeContainerLayoutCommand(workspace, layoutForDirection));
+      _bus.Invoke(new ChangeContainerLayoutCommand(workspace, layout));
 
-      // TODO: Should probably descend into sibling if possible.
-      if (HasSiblingInDirection(windowToMove, direction))
-        SwapSiblingContainers(windowToMove, direction);
-
-      _bus.Invoke(new RedrawContainersCommand());
+      return workspace;
     }
 
     private void InsertIntoAncestor(
@@ -201,7 +188,7 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
     {
       // Traverse up from `windowToMove` to find container where the parent is `ancestorWithLayout`.
       // Then, depending on the direction, insert before or after that container.
-      var insertionReference = windowToMove.Ancestors
+      var insertionReference = windowToMove.SelfAndAncestors
         .FirstOrDefault(container => container.Parent == ancestorWithLayout);
 
       var insertionReferenceSibling = direction is Direction.Up or Direction.Left
