@@ -74,6 +74,9 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
         return;
       }
 
+      // What exactly are the conditions when the layout should change? When should
+      // the container be moved to a parent/ancestor?
+
       // The window cannot be moved within the parent container, so traverse upwards to
       // find a suitable ancestor to move to.
       var ancestorWithLayout = windowToMove.Parent.Ancestors.FirstOrDefault(
