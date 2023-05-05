@@ -52,20 +52,16 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
     {
       var layoutForDirection = direction.GetCorrespondingLayout();
       var parentMatchesLayout =
-        (windowToMove.Parent as SplitContainer).Layout == direction.GetCorrespondingLayout();
-
-      if (parentMatchesLayout && HasSiblingInDirection(windowToMove, direction))
-      {
-        SwapSiblingContainers(windowToMove, direction);
-        return CommandResponse.Ok;
-      }
+        (windowToMove.Parent as SplitContainer).Layout ==
+        direction.GetCorrespondingLayout();
 
       var hasResizableSiblings = windowToMove.SiblingsOfType<IResizable>().Any();
 
       // Attempt to the move window to workspace in given direction.
       if (
-        (parentMatchesLayout && windowToMove.Parent is Workspace) ||
-        (!hasResizableSiblings && windowToMove.Parent is Workspace))
+        windowToMove.Parent is Workspace &&
+        (!hasResizableSiblings || parentMatchesLayout) &&
+        !HasSiblingInDirection(windowToMove, direction))
       {
         MoveToWorkspaceInDirection(windowToMove, direction);
         return CommandResponse.Ok;
@@ -77,7 +73,17 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       );
 
       // If there is no suitable ancestor, then change the layout of the workspace.
-      ancestorWithLayout ??= ChangeWorkspaceLayout(windowToMove, layoutForDirection);
+      if (ancestorWithLayout is null)
+      {
+        ancestorWithLayout ??= ChangeWorkspaceLayout(windowToMove, layoutForDirection);
+        parentMatchesLayout = true;
+      }
+
+      if (parentMatchesLayout && HasSiblingInDirection(windowToMove, direction))
+      {
+        SwapSiblingContainers(windowToMove, direction);
+        return CommandResponse.Ok;
+      }
 
       // Move the container into the given ancestor. This could simply be the container's
       // direct parent.
@@ -154,7 +160,7 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
 
     private void MoveToWorkspaceInDirection(Window windowToMove, Direction direction)
     {
-      var monitor = MonitorService.GetMonitorFromChildContainer(windowToMove);
+      var monitor = windowToMove.Ancestors.OfType<Monitor>().First();
       var monitorInDirection = _monitorService.GetMonitorInDirection(direction, monitor);
       var workspaceInDirection = monitorInDirection?.DisplayedWorkspace;
 
@@ -213,6 +219,7 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
         (sibling as IResizable).SizePercentage += sizePercentageIncrement;
       }
 
+      // TODO: What to do here?
       // var insertionIndex = direction is Direction.Up or Direction.Left
       //   ? 0
       //   : 1;
