@@ -73,9 +73,11 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       );
 
       // If there is no suitable ancestor, then change the layout of the workspace.
+      // TODO: This check needs to be changed.
       if (ancestorWithLayout is null)
       {
         ancestorWithLayout ??= ChangeWorkspaceLayout(windowToMove, layoutForDirection);
+        // TODO: Will this always be true?
         parentMatchesLayout = true;
       }
 
@@ -198,17 +200,21 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       {
         Layout = layout.Inverse(),
         SizePercentage = 0.5,
-        // Children = windowToMove.Parent.Children.Where(con => con != windowToMove).ToList(),
-        // ChildFocusOrder = windowToMove.Parent.ChildFocusOrder.Where(con => con != windowToMove).ToList(),
       };
 
-      var siblings = windowToMove.Parent.ChildFocusOrder
-        .Where(child => child != windowToMove && child is IResizable)
+      // Window might not be a direct child of workspace, so in those cases, get the
+      // ancestor that is a direct child of the workspace.
+      var windowAncestor = windowToMove.SelfAndAncestors
+        .FirstOrDefault(container => container.Parent == workspace);
+
+      (windowAncestor as IResizable).SizePercentage = 0.5;
+
+      var siblings = workspace.ChildFocusOrder
+        .Where(child => child != windowAncestor && child is IResizable)
         .Reverse();
 
-      // var resizableSiblings = siblings.OfType<IResizable>();
       var sizePercentageIncrement =
-        (windowToMove as TilingWindow).SizePercentage / siblings.Count();
+        (windowAncestor as IResizable).SizePercentage / siblings.Count();
 
       // TODO: Create command `WrapInSplitContainer` (can be re-used for
       // `ChangeContainerLayoutHandler`).
@@ -219,12 +225,6 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
         (sibling as IResizable).SizePercentage += sizePercentageIncrement;
       }
 
-      // TODO: What to do here?
-      // var insertionIndex = direction is Direction.Up or Direction.Left
-      //   ? 0
-      //   : 1;
-
-      (windowToMove as IResizable).SizePercentage = 0.5;
       _bus.Invoke(new AttachContainerCommand(splitContainer, workspace));
 
       return workspace;
