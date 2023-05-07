@@ -52,39 +52,41 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
     {
       var layoutForDirection = direction.GetCorrespondingLayout();
       var parentMatchesLayout =
-        (windowToMove.Parent as SplitContainer).Layout ==
-        direction.GetCorrespondingLayout();
+        (windowToMove.Parent as SplitContainer).Layout == direction.GetCorrespondingLayout();
+
+      if (parentMatchesLayout && HasSiblingInDirection(windowToMove, direction))
+      {
+        SwapSiblingContainers(windowToMove, direction);
+        return CommandResponse.Ok;
+      }
 
       var hasResizableSiblings = windowToMove.SiblingsOfType<IResizable>().Any();
 
       // Attempt to the move window to workspace in given direction.
       if (
         windowToMove.Parent is Workspace &&
-        (!hasResizableSiblings || parentMatchesLayout) &&
-        !HasSiblingInDirection(windowToMove, direction))
+        (!hasResizableSiblings || parentMatchesLayout))
       {
         MoveToWorkspaceInDirection(windowToMove, direction);
         return CommandResponse.Ok;
       }
 
       // Find an ancestor that the window can be moved to.
-      var ancestorWithLayout = windowToMove.Ancestors.FirstOrDefault(
+      var ancestorWithLayout = windowToMove.Parent.Ancestors.FirstOrDefault(
         container => (container as SplitContainer)?.Layout == layoutForDirection
       );
 
       // If there is no suitable ancestor, then change the layout of the workspace.
-      // TODO: This check needs to be changed.
       if (ancestorWithLayout is null)
       {
-        ancestorWithLayout ??= ChangeWorkspaceLayout(windowToMove, layoutForDirection);
-        // TODO: Will this always be true?
-        parentMatchesLayout = true;
-      }
+        ancestorWithLayout = ChangeWorkspaceLayout(windowToMove, layoutForDirection);
 
-      if (parentMatchesLayout && HasSiblingInDirection(windowToMove, direction))
-      {
-        SwapSiblingContainers(windowToMove, direction);
-        return CommandResponse.Ok;
+        // Re-attempt to swap siblings after changing workspace layout.
+        if (HasSiblingInDirection(windowToMove, direction))
+        {
+          SwapSiblingContainers(windowToMove, direction);
+          return CommandResponse.Ok;
+        }
       }
 
       // Move the container into the given ancestor. This could simply be the container's
