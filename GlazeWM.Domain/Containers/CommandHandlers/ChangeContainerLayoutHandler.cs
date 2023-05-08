@@ -24,10 +24,26 @@ namespace GlazeWM.Domain.Containers.CommandHandlers
       var container = command.Container;
       var newLayout = command.NewLayout;
 
-      if (container is TilingWindow)
-        ChangeWindowLayout(container as Window, newLayout);
-      else if (container is Workspace)
-        ChangeWorkspaceLayout(container as Workspace, newLayout);
+      var layoutContainer = container is SplitContainer
+        ? container as SplitContainer
+        : container.Parent as SplitContainer;
+
+      var currentLayout = layoutContainer.Layout;
+
+      if (currentLayout == newLayout)
+        return CommandResponse.Ok;
+
+      layoutContainer.Layout = newLayout;
+
+      var inverseLayoutChildren = layoutContainer.Children
+        .OfType<SplitContainer>()
+        .Where(child => child.Layout != newLayout);
+
+      // Flatten any child split containers with the same layout as the layout container.
+      foreach (var inverseLayoutChild in inverseLayoutChildren)
+        _bus.Invoke(new FlattenSplitContainerCommand(inverseLayoutChild));
+
+      _containerService.ContainersToRedraw.Add(layoutContainer);
 
       _bus.Emit(new LayoutChangedEvent(newLayout));
 
