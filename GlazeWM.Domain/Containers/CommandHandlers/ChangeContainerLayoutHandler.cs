@@ -24,6 +24,8 @@ namespace GlazeWM.Domain.Containers.CommandHandlers
       var container = command.Container;
       var newLayout = command.NewLayout;
 
+      // TODO: Check that container is either a tiling window or workspace.
+
       var layoutContainer = container is SplitContainer
         ? container as SplitContainer
         : container.Parent as SplitContainer;
@@ -32,6 +34,37 @@ namespace GlazeWM.Domain.Containers.CommandHandlers
 
       if (currentLayout == newLayout)
         return CommandResponse.Ok;
+
+      if (container is not SplitContainer)
+      {
+        var hasResizableSiblings = container.SiblingsOfType<IResizable>().Any();
+
+        // If the window is an only child and the parent is a normal split container, then flatten
+        // the split container.
+        // TODO: Handle case where parent is workspace.
+        if (!hasResizableSiblings)
+        {
+          _bus.Invoke(new FlattenSplitContainerCommand(layoutContainer));
+          return CommandResponse.Ok;
+        }
+
+        // Create a new split container to wrap the window.
+        var splitContainer = new SplitContainer
+        {
+          Layout = newLayout,
+        };
+
+        // Replace the window with the wrapping split container. The window has to be
+        // attached to the split container after the replacement.
+        _bus.Invoke(new ReplaceContainerCommand(splitContainer, layoutContainer, container.Index));
+
+        // The child container takes up the full size of its parent split container.
+        (container as IResizable).SizePercentage = 1;
+        _bus.Invoke(new DetachContainerCommand(container));
+        _bus.Invoke(new AttachContainerCommand(container, splitContainer));
+
+        return CommandResponse.Ok;
+      }
 
       layoutContainer.Layout = newLayout;
 
