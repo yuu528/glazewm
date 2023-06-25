@@ -29,20 +29,27 @@ namespace GlazeWM.Domain.Containers.CommandHandlers
 
       foreach (var (child, index) in originalChildren.WithIndex())
       {
-        // Insert children of the split container at its original index in the parent. The split
-        // container will automatically detach once its last child is detached.
+        // Insert children of the split container at its original index in the parent.
+        // The split container will automatically detach once its last child is detached.
         _bus.Invoke(new DetachContainerCommand(child));
-        _bus.Invoke(new AttachContainerCommand(child, originalParent, originalIndex + index));
+        _bus.Invoke(
+          new AttachContainerCommand(child, originalParent, originalIndex + index)
+        );
 
-        (child as IResizable).SizePercentage = (containerToFlatten as IResizable).SizePercentage
-          * (child as IResizable).SizePercentage;
+        (child as IResizable).SizePercentage =
+          (containerToFlatten as IResizable).SizePercentage *
+          (child as IResizable).SizePercentage;
       }
 
       // Correct focus order of the inserted containers.
       foreach (var child in originalChildren)
       {
         var childFocusIndex = originalFocusOrder.IndexOf(child);
-        originalParent.ChildFocusOrder.ShiftToIndex(originalFocusIndex + childFocusIndex, child);
+
+        originalParent.ChildFocusOrder.ShiftToIndex(
+          originalFocusIndex + childFocusIndex,
+          child
+        );
       }
 
       _containerService.ContainersToRedraw.Add(originalParent);
