@@ -209,6 +209,9 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       var windowAncestor = windowToMove.SelfAndAncestors
         .FirstOrDefault(container => container.Parent == workspace);
 
+      // TODO: The logic here isn't correct .
+      // eg. with layout H [1 V[2 3]] and window 3 is moved down, the `windowAncestor`
+      // should remain the same size (?).
       (windowAncestor as IResizable).SizePercentage = 0.5;
 
       var siblings = workspace.ChildFocusOrder
