@@ -40,25 +40,16 @@ namespace GlazeWM.Domain.UserConfigs.CommandHandlers
 
         // Register all keybindings for a command sequence.
         foreach (var binding in keybindingConfig.BindingList)
+        {
           _keybindingService.AddGlobalKeybinding(binding, () =>
           {
-            Task.Run(() =>
-            {
-              try
-              {
-                // Avoid invoking keybinding if an ignored window currently has focus.
-                if (_windowService.IgnoredHandles.Contains(GetForegroundWindow()))
-                  return;
+            // Avoid invoking keybinding if an ignored window currently has focus.
+            if (_windowService.IgnoredHandles.Contains(GetForegroundWindow()))
+              return;
 
-                _bus.Invoke(new RunWithSubjectContainerCommand(commandStrings));
-              }
-              catch (Exception e)
-              {
-                _bus.Invoke(new HandleFatalExceptionCommand(e));
-                throw;
-              }
-            });
+            _bus.InvokeAsync(new RunWithSubjectContainerCommand(commandStrings))
           });
+        }
       }
 
       return CommandResponse.Ok;
