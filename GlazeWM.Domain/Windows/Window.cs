@@ -9,9 +9,6 @@ namespace GlazeWM.Domain.Windows
 {
   public abstract class Window : Container
   {
-    /// <inheritdoc />
-    public override ContainerType Type { get; } = ContainerType.Window;
-
     public IntPtr Handle { get; }
 
     /// <summary>
@@ -32,7 +29,12 @@ namespace GlazeWM.Domain.Windows
     /// </summary>
     public bool HasPendingDpiAdjustment { get; set; }
 
-    protected Window(IntPtr handle, Rect floatingPlacement, RectDelta borderDelta)
+    protected Window(
+      IntPtr handle,
+      Rect floatingPlacement,
+      RectDelta borderDelta,
+      Guid id,
+      ContainerType containerType) : base(id, containerType)
     {
       Handle = handle;
       FloatingPlacement = floatingPlacement;

@@ -6,9 +6,6 @@ namespace GlazeWM.Domain.Monitors
 {
   public sealed class Monitor : Container
   {
-    /// <inheritdoc />
-    public override ContainerType Type { get; } = ContainerType.Monitor;
-
     public string DeviceName { get; set; }
     public override int Width { get; set; }
     public override int Height { get; set; }
@@ -19,7 +16,13 @@ namespace GlazeWM.Domain.Monitors
     public uint Dpi => MonitorService.GetMonitorDpi(this);
     public double ScaleFactor => Dpi / 96.0;
 
-    public Monitor(string deviceName, int width, int height, int x, int y)
+    public Monitor(
+      string deviceName,
+      int width,
+      int height,
+      int x,
+      int y,
+      Guid id = Guid.NewGuid()) : base(id, ContainerType.Monitor)
     {
       DeviceName = deviceName;
       Width = width;

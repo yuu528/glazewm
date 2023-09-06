@@ -6,9 +6,6 @@ namespace GlazeWM.Domain.Containers
 {
   public class SplitContainer : Container, IResizable
   {
-    /// <inheritdoc />
-    public override ContainerType Type { get; } = ContainerType.Split;
-
     public TilingDirection TilingDirection { get; set; } = TilingDirection.Horizontal;
 
     public double SizePercentage { get; set; } = 1;
@@ -20,5 +17,9 @@ namespace GlazeWM.Domain.Containers
     public override int Height => _containerService.GetHeightOfResizableContainer(this);
     public override int X => _containerService.GetXOfResizableContainer(this);
     public override int Y => _containerService.GetYOfResizableContainer(this);
+
+    public SplitContainer(
+      Guid id = Guid.NewGuid(),
+      ContainerType containerType = ContainerType.Split) : base(id, containerType)
   }
 }

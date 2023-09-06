@@ -6,6 +6,10 @@ namespace GlazeWM.Domain.Common
     Monitor,
     Workspace,
     Split,
-    Window,
+    FloatingWindow,
+    FullscreenWindow,
+    MaximizedWindow,
+    MinimizedWindow,
+    TilingWindow
   }
 }

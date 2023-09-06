@@ -12,9 +12,6 @@ namespace GlazeWM.Domain.Workspaces
 {
   public sealed class Workspace : SplitContainer
   {
-    /// <inheritdoc />
-    public override ContainerType Type { get; } = ContainerType.Workspace;
-
     public string Name { get; set; }
 
     private readonly UserConfigService _userConfigService =
@@ -93,7 +90,10 @@ namespace GlazeWM.Domain.Workspaces
     /// </summary>
     public bool IsDisplayed => (Parent as Monitor)?.DisplayedWorkspace == this;
 
-    public Workspace(string name, TilingDirection tilingDirection)
+    public Workspace(
+      string name,
+      TilingDirection tilingDirection,
+      Guid id = Guid.NewGuid()) : base(id, ContainerType.Workspace)
     {
       Name = name;
       TilingDirection = tilingDirection;

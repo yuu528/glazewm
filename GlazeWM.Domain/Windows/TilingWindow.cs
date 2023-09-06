@@ -7,7 +7,7 @@ namespace GlazeWM.Domain.Windows
 {
   public sealed class TilingWindow : Window, IResizable
   {
-    public double SizePercentage { get; set; } = 1;
+    public double SizePercentage { get; set; }
 
     private readonly ContainerService _containerService =
       ServiceLocator.GetRequiredService<ContainerService>();
@@ -20,17 +20,10 @@ namespace GlazeWM.Domain.Windows
     public TilingWindow(
       IntPtr handle,
       Rect floatingPlacement,
-      RectDelta borderDelta
-    ) : base(handle, floatingPlacement, borderDelta)
-    {
-    }
-
-    public TilingWindow(
-      IntPtr handle,
-      Rect floatingPlacement,
       RectDelta borderDelta,
-      double sizePercentage
-    ) : base(handle, floatingPlacement, borderDelta)
+      double sizePercentage = 1,
+      Guid id = Guid.NewGuid()
+    ) : base(handle, floatingPlacement, borderDelta, id, ContainerType.TilingWindow)
     {
       SizePercentage = sizePercentage;
     }

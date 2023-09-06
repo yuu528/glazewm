@@ -11,8 +11,9 @@ namespace GlazeWM.Domain.Windows
       IntPtr handle,
       Rect floatingPlacement,
       RectDelta borderDelta,
-      WindowType previousState
-    ) : base(handle, floatingPlacement, borderDelta)
+      WindowType previousState,
+      Guid id = Guid.NewGuid()
+    ) : base(handle, floatingPlacement, borderDelta, id, ContainerType.MinimizedWindow)
     {
       PreviousState = previousState;
     }

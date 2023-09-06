@@ -11,12 +11,12 @@ namespace GlazeWM.Domain.Containers
     /// <summary>
     /// A unique identifier for the container.
     /// </summary>
-    public Guid Id { get; } = Guid.NewGuid();
+    public Guid Id { get; }
 
     /// <summary>
     /// Derived container type (eg. `ContainerType.Monitor`).
     /// </summary>
-    public abstract ContainerType Type { get; }
+    public ContainerType Type { get; }
 
     public virtual int Height { get; set; }
     public virtual int Width { get; set; }
@@ -30,6 +30,12 @@ namespace GlazeWM.Domain.Containers
     /// The order of which child containers last had focus.
     /// </summary>
     public List<Container> ChildFocusOrder { get; set; } = new List<Container>();
+
+    public Container(Guid id, ContainerType type)
+    {
+      Id = id;
+      Type = type;
+    }
 
     /// <summary>
     /// The child container that last had focus.

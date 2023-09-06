@@ -16,8 +16,9 @@ namespace GlazeWM.Domain.Windows
     public FloatingWindow(
       IntPtr handle,
       Rect floatingPlacement,
-      RectDelta borderDelta
-    ) : base(handle, floatingPlacement, borderDelta)
+      RectDelta borderDelta,
+      Guid id = Guid.NewGuid()
+    ) : base(handle, floatingPlacement, borderDelta, id, ContainerType.FloatingWindow)
     {
     }
   }
