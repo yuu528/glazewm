@@ -24,6 +24,8 @@ namespace GlazeWM.Domain.UserConfigs
     public List<KeybindingConfig> Keybindings => UserConfig.Keybindings;
     public List<BindingMode> BindingModes => UserConfig.BindingModes;
 
+    public Dictionary<Guid, List<WindowRuleType>> Dictionary = new();
+
     /// <summary>
     /// Path to the user's config file.
     /// </summary>

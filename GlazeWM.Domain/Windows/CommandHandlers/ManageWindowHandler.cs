@@ -68,12 +68,10 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       // Set the newly added window as focus descendant. This means the window rules will be run as
       // if the window is focused.
       _bus.Invoke(new SetFocusedDescendantCommand(window));
-      _bus.Invoke(new RunWithSubjectContainerCommand(windowRuleCommands, window));
-      Task.Run(async delegate
-      {
-        await Task.Delay(TimeSpan.FromSeconds(1.5), source.Token);
-        return 42;
-      });
+      _bus.Invoke(new RunWindowRulesCommand(
+        window,
+        new List<WindowRuleType>() { WindowRuleType.OnManage }
+      ));
 
       // Update window in case the reference changes.
       window = _windowService.GetWindowByHandle(window.Handle);
