@@ -29,8 +29,8 @@ namespace GlazeWM.Domain.Windows.EventHandlers
       _bus.Invoke(new RunWindowRulesCommand(
         window,
         new List<WindowRuleType>() {
-          WindowRuleType.FirstTitleChanged,
-          WindowRuleType.TitleChanged
+          WindowRuleType.FirstTitleChange,
+          WindowRuleType.TitleChange
         }
       ));
       _bus.Invoke(new RedrawContainersCommand());

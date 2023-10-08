@@ -84,8 +84,8 @@ namespace GlazeWM.Domain.Windows.EventHandlers
       _bus.Invoke(new RunWindowRulesCommand(
         window,
         new List<WindowRuleType>() {
-          WindowRuleType.FirstFocusChanged,
-          WindowRuleType.FocusChanged
+          WindowRuleType.FirstFocus,
+          WindowRuleType.Focus
         }
       ));
       _bus.Invoke(new RedrawContainersCommand());

@@ -37,7 +37,7 @@ namespace GlazeWM.Domain.UserConfigs.CommandHandlers
       foreach (var window in _windowService.GetWindows())
         _bus.Invoke(new RunWindowRulesCommand(
           window,
-          new List<WindowRuleType>() { WindowRuleType.OnManage }
+          new List<WindowRuleType>() { WindowRuleType.Manage }
         ));
 
       // Redraw full container tree.

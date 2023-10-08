@@ -70,7 +70,7 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       _bus.Invoke(new SetFocusedDescendantCommand(window));
       _bus.Invoke(new RunWindowRulesCommand(
         window,
-        new List<WindowRuleType>() { WindowRuleType.OnManage }
+        new List<WindowRuleType>() { WindowRuleType.Manage }
       ));
 
       // Update window in case the reference changes.
