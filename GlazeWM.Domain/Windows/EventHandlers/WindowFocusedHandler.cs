@@ -60,6 +60,7 @@ namespace GlazeWM.Domain.Windows.EventHandlers
       if (unmanagedStopwatch.IsRunning && unmanagedStopwatch.ElapsedMilliseconds < 100)
       {
         _logger.LogDebug("Overriding native focus.");
+        _containerService.HasPendingFocusSync = true;
         _bus.Invoke(new SyncNativeFocusCommand());
         return;
       }
@@ -73,15 +74,22 @@ namespace GlazeWM.Domain.Windows.EventHandlers
 
         var workspace = WorkspaceService.GetWorkspaceFromChildContainer(window);
         _bus.Invoke(new FocusWorkspaceCommand(workspace.Name));
-        _bus.Invoke(new SetFocusedDescendantCommand(window));
-        _bus.Invoke(new RedrawContainersCommand());
-        _bus.Emit(new FocusChangedEvent(window));
-        return;
       }
 
       // Update the WM's focus state.
       _bus.Invoke(new SetFocusedDescendantCommand(window));
       _bus.Emit(new FocusChangedEvent(window));
+
+      // Run focus window rules.
+      _bus.Invoke(new RunWindowRulesCommand(
+        window,
+        new List<WindowRuleType>() {
+          WindowRuleType.FirstFocusChanged,
+          WindowRuleType.FocusChanged
+        }
+      ));
+      _bus.Invoke(new RedrawContainersCommand());
+      _bus.Invoke(new SyncNativeFocusCommand());
     }
   }
 }

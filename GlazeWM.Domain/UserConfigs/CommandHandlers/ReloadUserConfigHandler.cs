@@ -14,18 +14,15 @@ namespace GlazeWM.Domain.UserConfigs.CommandHandlers
   {
     private readonly Bus _bus;
     private readonly ContainerService _containerService;
-    private readonly UserConfigService _userConfigService;
     private readonly WindowService _windowService;
 
     public ReloadUserConfigHandler(
       Bus bus,
       ContainerService containerService,
-      UserConfigService userConfigService,
       WindowService windowService)
     {
       _bus = bus;
       _containerService = containerService;
-      _userConfigService = userConfigService;
       _windowService = windowService;
     }
 
@@ -36,20 +33,12 @@ namespace GlazeWM.Domain.UserConfigs.CommandHandlers
 
       _bus.Invoke(new UpdateWorkspacesFromConfigCommand(_userConfigService.WorkspaceConfigs));
 
+      // Run matching window rules.
       foreach (var window in _windowService.GetWindows())
-      {
-        var windowRules = _userConfigService.GetWindowRules(
+        _bus.Invoke(new RunWindowRulesCommand(
           window,
-          WindowRuleType.Manage
-        );
-
-        var windowRuleCommands = windowRules
-          .SelectMany(rule => rule.CommandList)
-          .Select(CommandParsingService.FormatCommand);
-
-        // Run matching window rules.
-        _bus.Invoke(new RunWithSubjectContainerCommand(windowRuleCommands, window));
-      }
+          new List<WindowRuleType>() { WindowRuleType.OnManage }
+        ));
 
       // Redraw full container tree.
       _containerService.ContainersToRedraw.Add(_containerService.ContainerTree);
