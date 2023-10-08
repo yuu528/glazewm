@@ -6,6 +6,8 @@ namespace GlazeWM.Domain.UserConfigs
 {
   public class WindowRuleConfig
   {
+    public List<WindowRuleType> On { get; set; } = new() { WindowRuleType.Manage };
+
     public string MatchProcessName { get; set; }
 
     public Regex ProcessNameRegex => CreateRegex(MatchProcessName);

@@ -32,25 +32,30 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       var ruleTypes = command.RuleTypes;
 
       var windowRules = ruleTypes
-        .Where(ruleType =>
-        {
-          // Avoid running rules again when they should only be run once.
-          return ruleType is WindowRuleType.FirstFocus
-            or WindowRuleType.FirstTitleChange
-            ? _userConfigService.HasRanRuleType(subjectContainer.Id)
-            : true;
-        })
+        .Where(
+          // Avoid running certain rules again when they should only be run once.
+          ruleType => ruleType switch {
+            FirstFocus or
+            FirstTitleChange or
+            Manage => !_userConfigService.HasRunRuleType(subjectContainer.Id),
+            _ => true,
+          }
+        )
         .Select(ruleType => _userConfigService.GetWindowRules(windowRules, ruleType));
+
+      // Return early if there are no window rules to run.
+      if (!windowRules.Any())
+        return CommandResponse.Ok;
 
       var windowRuleCommands = windowRules
         .SelectMany(rule => rule.CommandList)
         .Select(CommandParsingService.FormatCommand);
 
-      _userConfigService.AddToRanRules(subjectContainer.Id);
-
       _bus.Invoke(
         new RunWithSubjectContainerCommand(subjectContainer, windowRuleCommands)
       );
+
+      _userConfigService.AddToRanRules(subjectContainer.Id, ruleTypes);
 
       return CommandResponse.Ok;
     }

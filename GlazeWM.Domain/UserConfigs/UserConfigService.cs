@@ -24,7 +24,20 @@ namespace GlazeWM.Domain.UserConfigs
     public List<KeybindingConfig> Keybindings => UserConfig.Keybindings;
     public List<BindingMode> BindingModes => UserConfig.BindingModes;
 
-    public Dictionary<Guid, List<WindowRuleType>> Dictionary = new();
+    /// <summary>
+    /// Dictionary of window ID's and the window rules that the respective window has run.
+    /// </summary>
+    public Dictionary<Guid, List<WindowRuleType>> RanWindowRules = new();
+
+    /// <summary>
+    /// Dictionary of window rule types (eg. 'Manage', 'Focus') and the corresponding
+    /// window rules of that type.
+    /// </summary>
+    private Dictionary<WindowRuleType, List<WindowRuleConfig>> WindowRulesByType =
+      new(Enum.GetValues(typeof(WindowRuleType)).ToDictionary(
+        (ruleType) => ruleType,
+        (_) => new List<WindowRuleConfig>()
+      ));
 
     /// <summary>
     /// Path to the user's config file.
