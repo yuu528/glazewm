@@ -38,7 +38,11 @@ namespace GlazeWM.Domain.UserConfigs.CommandHandlers
 
       foreach (var window in _windowService.GetWindows())
       {
-        var windowRules = _userConfigService.GetMatchingWindowRules(window);
+        var windowRules = _userConfigService.GetWindowRules(
+          window,
+          WindowRuleType.Manage
+        );
+
         var windowRuleCommands = windowRules
           .SelectMany(rule => rule.CommandList)
           .Select(CommandParsingService.FormatCommand);

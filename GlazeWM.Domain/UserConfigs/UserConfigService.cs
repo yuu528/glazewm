@@ -10,10 +10,18 @@ namespace GlazeWM.Domain.UserConfigs
 {
   public class UserConfigService
   {
+    private UserConfig _userConfig;
+
     /// <summary>
     /// The deserialized user config. Sections of the config can be accessed via getters.
     /// </summary>
-    public UserConfig UserConfig { private get; set; }
+    public UserConfig UserConfig {
+      get => _userConfig;
+      set {
+        _userConfig = value;
+        _windowRulesByType = GetWindowRulesByType(value);
+      }
+    };
 
     public GapsConfig GapsConfig => UserConfig.Gaps;
     public FocusBordersConfig FocusBorderConfig => UserConfig.FocusBorderColor;
@@ -28,11 +36,7 @@ namespace GlazeWM.Domain.UserConfigs
     /// Dictionary of window rule types (eg. 'Manage', 'Focus') and the corresponding
     /// window rules of that type.
     /// </summary>
-    private Dictionary<WindowRuleType, List<WindowRuleConfig>> WindowRulesByType =
-      new(Enum.GetValues(typeof(WindowRuleType)).ToDictionary(
-        (ruleType) => ruleType,
-        (_) => new List<WindowRuleConfig>()
-      ));
+    private Dictionary<WindowRuleType, List<WindowRuleConfig>> _windowRulesByType = new();
 
     /// <summary>
     /// Path to the user's config file.
@@ -115,6 +119,26 @@ namespace GlazeWM.Domain.UserConfigs
       return windowRules;
     }
 
+    private Dictionary<WindowRuleType, List<WindowRuleConfig>> GetWindowRulesByType(
+      UserConfig userConfig)
+    {
+      var windowRulesByType = Enum.GetValues(typeof(WindowRuleType)).ToDictionary(
+        (ruleType) => ruleType,
+        (_) => new List<WindowRuleConfig>()
+      );
+
+      foreach (var windowRule in userConfig.WindowRules)
+      {
+        foreach (var ruleType in windowRule.On)
+        {
+          var windowRules = windowRulesByType[ruleType];
+          windowRules.Add(windowRule);
+        }
+      }
+
+      return windowRulesByType;
+    }
+
     public WorkspaceConfig GetWorkspaceConfigByName(string workspaceName)
     {
       return WorkspaceConfigs.Find(
@@ -138,9 +162,11 @@ namespace GlazeWM.Domain.UserConfigs
       return boundMonitor ?? BarConfigs[0];
     }
 
-    public List<WindowRuleConfig> GetMatchingWindowRules(Window window)
+    public List<WindowRuleConfig> GetWindowRules(Window window, WindowRuleType ruleType)
     {
-      return WindowRules.Where(rule =>
+      var windowRules = _windowRulesByType[ruleType];
+
+      return windowRules.Where(rule =>
       {
         return rule.ProcessNameRegex?.IsMatch(window.ProcessName) != false &&
           rule.ClassNameRegex?.IsMatch(window.ClassName) != false &&
