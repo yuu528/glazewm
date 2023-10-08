@@ -25,11 +25,6 @@ namespace GlazeWM.Domain.UserConfigs
     public List<BindingMode> BindingModes => UserConfig.BindingModes;
 
     /// <summary>
-    /// Dictionary of window ID's and the window rules that the respective window has run.
-    /// </summary>
-    public Dictionary<Guid, List<WindowRuleType>> RanWindowRules = new();
-
-    /// <summary>
     /// Dictionary of window rule types (eg. 'Manage', 'Focus') and the corresponding
     /// window rules of that type.
     /// </summary>

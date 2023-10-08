@@ -19,11 +19,16 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
   {
     private readonly Bus _bus;
     private readonly UserConfigService _userConfigService;
+    private readonly WindowService _windowService;
 
-    public RunWindowRulesHandler(Bus bus, UserConfigService userConfigService)
+    public RunWindowRulesHandler(
+      Bus bus,
+      UserConfigService userConfigService
+      WindowService windowService)
     {
       _bus = bus;
       _userConfigService = userConfigService;
+      _windowService = windowService;
     }
 
     public CommandResponse Handle(RunWindowRulesCommand command)
@@ -37,11 +42,11 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
           ruleType => ruleType switch {
             FirstFocus or
             FirstTitleChange or
-            Manage => !_userConfigService.HasRunRuleType(subjectContainer.Id),
+            Manage => !_windowService.HasRunRuleType(subjectContainer.Id),
             _ => true,
           }
         )
-        .Select(ruleType => _userConfigService.GetWindowRules(windowRules, ruleType));
+        .Select(ruleType => _userConfigService.GetWindowRules(window, ruleType));
 
       // Return early if there are no window rules to run.
       if (!windowRules.Any())
@@ -55,7 +60,8 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
         new RunWithSubjectContainerCommand(subjectContainer, windowRuleCommands)
       );
 
-      _userConfigService.AddToRanRules(subjectContainer.Id, ruleTypes);
+      foreach (var ruleType in ruleTypes)
+        _windowService.AddRanRuleType(subjectContainer.Id, ruleType);
 
       return CommandResponse.Ok;
     }

@@ -26,10 +26,16 @@ namespace GlazeWM.Domain.Windows
     public List<IntPtr> IgnoredHandles { get; set; } = new();
 
     /// <summary>
-    /// Time since a previously focused window was unmanaged or minimized. Used to
-    /// decide whether to override incoming focus events.
+    /// Time since a previously focused window was unmanaged or minimized. Used
+    /// to decide whether to override incoming focus events.
     /// </summary>
     public Stopwatch UnmanagedOrMinimizedStopwatch { get; } = new();
+
+    /// <summary>
+    /// Dictionary of window ID's and the the respective window rule types the
+    /// window has ran.
+    /// </summary>
+    private Dictionary<Guid, HashSet<WindowRuleType>> _ranRuleTypes = new();
 
     private readonly ContainerService _containerService;
     private readonly MonitorService _monitorService;
@@ -51,6 +57,17 @@ namespace GlazeWM.Domain.Windows
     public Window GetWindowByHandle(IntPtr handle)
     {
       return GetWindows().FirstOrDefault(window => window.Handle == handle);
+    }
+
+    public void AddRanRuleType(Window window, WindowRuleType ruleType)
+    {
+      var ranRuleTypes = _ranRuleTypes.GetValueOrDefault(window.Id, new());
+      ranRuleTypes.Add(ruleType);
+    }
+
+    public void ClearRanRuleTypes(Window window)
+    {
+      _ranRuleTypes.Remove(window.Id);
     }
 
     /// <summary>
