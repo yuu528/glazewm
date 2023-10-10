@@ -39,7 +39,7 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
             _ => true,
           }
         )
-        .Select(ruleType => _userConfigService.GetWindowRules(subjectContainer as Window, ruleType));
+        .SelectMany(ruleType => _userConfigService.GetWindowRules(subjectContainer as Window, ruleType));
 
       // Return early if there are no window rules to run.
       if (!windowRules.Any())
