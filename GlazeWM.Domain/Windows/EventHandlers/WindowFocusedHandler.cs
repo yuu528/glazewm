@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using System.Linq;
+using GlazeWM.Domain.Common;
 using GlazeWM.Domain.Common.Enums;
 using GlazeWM.Domain.Common.Utils;
 using GlazeWM.Domain.Containers;
 using GlazeWM.Domain.Containers.Commands;
 using GlazeWM.Domain.Containers.Events;
+using GlazeWM.Domain.Windows.Commands;
 using GlazeWM.Domain.Workspaces;
 using GlazeWM.Domain.Workspaces.Commands;
 using GlazeWM.Infrastructure.Bussing;

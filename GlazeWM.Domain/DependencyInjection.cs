@@ -64,6 +64,7 @@ namespace GlazeWM.Domain
       services.AddSingleton<ICommandHandler<CloseWindowCommand>, CloseWindowHandler>();
       services.AddSingleton<ICommandHandler<IgnoreWindowCommand>, IgnoreWindowHandler>();
       services.AddSingleton<ICommandHandler<ManageWindowCommand>, ManageWindowHandler>();
+      services.AddSingleton<ICommandHandler<RunWindowRulesCommand>, RunWindowRulesHandler>();
       services.AddSingleton<ICommandHandler<MoveWindowCommand>, MoveWindowHandler>();
       services.AddSingleton<ICommandHandler<ResizeWindowCommand>, ResizeWindowHandler>();
       services.AddSingleton<ICommandHandler<ResizeWindowBordersCommand>, ResizeWindowBordersHandler>();

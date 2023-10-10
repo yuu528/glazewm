@@ -1,17 +1,9 @@
-using System;
 using System.Linq;
-using GlazeWM.Domain.Common.Utils;
-using GlazeWM.Domain.Containers;
-using GlazeWM.Domain.Containers.Commands;
-using GlazeWM.Domain.Monitors;
 using GlazeWM.Domain.UserConfigs;
 using GlazeWM.Domain.UserConfigs.Commands;
 using GlazeWM.Domain.Windows.Commands;
-using GlazeWM.Domain.Windows.Events;
-using GlazeWM.Domain.Workspaces;
 using GlazeWM.Infrastructure.Bussing;
-using GlazeWM.Infrastructure.WindowsApi;
-using Microsoft.Extensions.Logging;
+using static GlazeWM.Domain.Common.WindowRuleType;
 
 namespace GlazeWM.Domain.Windows.CommandHandlers
 {
@@ -23,7 +15,7 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
 
     public RunWindowRulesHandler(
       Bus bus,
-      UserConfigService userConfigService
+      UserConfigService userConfigService,
       WindowService windowService)
     {
       _bus = bus;
@@ -39,14 +31,15 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       var windowRules = ruleTypes
         .Where(
           // Avoid running certain rules again when they should only be run once.
-          ruleType => ruleType switch {
+          ruleType => ruleType switch
+          {
             FirstFocus or
-            FirstTitleChange or
-            Manage => !_windowService.HasRunRuleType(subjectContainer.Id),
+              FirstTitleChange or
+              Manage => !_windowService.HasRanRuleType(subjectContainer as Window, ruleType),
             _ => true,
           }
         )
-        .Select(ruleType => _userConfigService.GetWindowRules(window, ruleType));
+        .Select(ruleType => _userConfigService.GetWindowRules(subjectContainer as Window, ruleType));
 
       // Return early if there are no window rules to run.
       if (!windowRules.Any())
@@ -57,11 +50,11 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
         .Select(CommandParsingService.FormatCommand);
 
       _bus.Invoke(
-        new RunWithSubjectContainerCommand(subjectContainer, windowRuleCommands)
+        new RunWithSubjectContainerCommand(windowRuleCommands, subjectContainer)
       );
 
       foreach (var ruleType in ruleTypes)
-        _windowService.AddRanRuleType(subjectContainer.Id, ruleType);
+        _windowService.AddRanRuleType(subjectContainer as Window, ruleType);
 
       return CommandResponse.Ok;
     }

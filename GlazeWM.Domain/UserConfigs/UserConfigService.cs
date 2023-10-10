@@ -15,13 +15,15 @@ namespace GlazeWM.Domain.UserConfigs
     /// <summary>
     /// The deserialized user config. Sections of the config can be accessed via getters.
     /// </summary>
-    public UserConfig UserConfig {
+    public UserConfig UserConfig
+    {
       get => _userConfig;
-      set {
+      set
+      {
         _userConfig = value;
         _windowRulesByType = GetWindowRulesByType(value);
       }
-    };
+    }
 
     public GapsConfig GapsConfig => UserConfig.Gaps;
     public FocusBordersConfig FocusBorderConfig => UserConfig.FocusBorderColor;
@@ -62,23 +64,21 @@ namespace GlazeWM.Domain.UserConfigs
     {
       var windowRules = new List<WindowRuleConfig>();
 
-      var classNamesToFloat = new List<string> {
+      var classNamesToFloat = new List<string>
+      {
         // Windows 10 dialog shown when moving and deleting files.
         "OperationStatusWindow",
       };
 
       foreach (var className in classNamesToFloat)
       {
-        var windowRule = new WindowRuleConfig()
-        {
-          MatchClassName = className,
-          Command = "set floating",
-        };
+        var windowRule = new WindowRuleConfig() { MatchClassName = className, Command = "set floating", };
 
         windowRules.Add(windowRule);
       }
 
-      var chromiumBrowserProcessNames = new List<string> {
+      var chromiumBrowserProcessNames = new List<string>
+      {
         "chrome",
         "msedge",
         "opera",
@@ -89,29 +89,18 @@ namespace GlazeWM.Domain.UserConfigs
       // Electron apps do not have invisible borders and are thus over-corrected by the default
       // border fix. To match these apps, get windows with the class name 'Chrome_WidgetWin_1' that
       // are not Chromium-based browsers (since the browser windows do have invisble borders).
-      var resizeElectronBorderWindowRule = new WindowRuleConfig()
-      {
-        MatchProcessName = $"/^(?!({string.Join("|", chromiumBrowserProcessNames)})$)/",
-        MatchClassName = "/Chrome_WidgetWin_*/",
-        Command = "resize borders 0px -7px -7px -7px",
-      };
+      var resizeElectronBorderWindowRule = new WindowRuleConfig() { MatchProcessName = $"/^(?!({string.Join("|", chromiumBrowserProcessNames)})$)/", MatchClassName = "/Chrome_WidgetWin_*/", Command = "resize borders 0px -7px -7px -7px", };
 
       windowRules.Add(resizeElectronBorderWindowRule);
 
-      var processNamesToIgnore = new List<string> {
-        "SearchApp",
-        "SearchHost",
-        "ShellExperienceHost",
-        "StartMenuExperienceHost",
+      var processNamesToIgnore = new List<string>
+      {
+        "SearchApp", "SearchHost", "ShellExperienceHost", "StartMenuExperienceHost",
       };
 
       foreach (var processName in processNamesToIgnore)
       {
-        var windowRule = new WindowRuleConfig()
-        {
-          MatchProcessName = processName,
-          Command = "ignore",
-        };
+        var windowRule = new WindowRuleConfig() { MatchProcessName = processName, Command = "ignore", };
 
         windowRules.Add(windowRule);
       }
@@ -122,9 +111,9 @@ namespace GlazeWM.Domain.UserConfigs
     private Dictionary<WindowRuleType, List<WindowRuleConfig>> GetWindowRulesByType(
       UserConfig userConfig)
     {
-      var windowRulesByType = Enum.GetValues(typeof(WindowRuleType)).ToDictionary(
-        (ruleType) => ruleType,
-        (_) => new List<WindowRuleConfig>()
+      var windowRulesByType = Enum.GetValues(typeof(WindowRuleType)).Cast<WindowRuleType>().ToDictionary(
+        ruleType => ruleType,
+        _ => new List<WindowRuleConfig>()
       );
 
       foreach (var windowRule in userConfig.WindowRules)
@@ -169,8 +158,8 @@ namespace GlazeWM.Domain.UserConfigs
       return windowRules.Where(rule =>
       {
         return rule.ProcessNameRegex?.IsMatch(window.ProcessName) != false &&
-          rule.ClassNameRegex?.IsMatch(window.ClassName) != false &&
-          rule.TitleRegex?.IsMatch(window.Title) != false;
+               rule.ClassNameRegex?.IsMatch(window.ClassName) != false &&
+               rule.TitleRegex?.IsMatch(window.Title) != false;
       }).ToList();
     }
   }

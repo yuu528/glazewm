@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Linq;
+using GlazeWM.Domain.Common;
 using GlazeWM.Domain.Containers;
 using GlazeWM.Domain.Containers.Commands;
 using GlazeWM.Domain.UserConfigs.Commands;
@@ -15,14 +17,17 @@ namespace GlazeWM.Domain.UserConfigs.CommandHandlers
     private readonly Bus _bus;
     private readonly ContainerService _containerService;
     private readonly WindowService _windowService;
+    private readonly UserConfigService _userConfigService;
 
     public ReloadUserConfigHandler(
       Bus bus,
       ContainerService containerService,
+      UserConfigService userConfigService,
       WindowService windowService)
     {
       _bus = bus;
       _containerService = containerService;
+      _userConfigService = userConfigService;
       _windowService = windowService;
     }
 

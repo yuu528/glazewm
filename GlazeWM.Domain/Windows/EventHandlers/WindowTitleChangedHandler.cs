@@ -1,5 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
+using GlazeWM.Domain.Common;
 using GlazeWM.Domain.Containers.Commands;
 using GlazeWM.Domain.Monitors.Commands;
+using GlazeWM.Domain.Windows.Commands;
 using GlazeWM.Infrastructure.Bussing;
 using GlazeWM.Infrastructure.Common.Events;
 

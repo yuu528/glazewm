@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using GlazeWM.Domain.Common;
 
 namespace GlazeWM.Domain.UserConfigs
 {

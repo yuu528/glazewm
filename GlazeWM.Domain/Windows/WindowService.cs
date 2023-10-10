@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using GlazeWM.Domain.Common;
 using GlazeWM.Domain.Containers;
 using GlazeWM.Domain.Monitors;
 using GlazeWM.Domain.Workspaces;
@@ -63,6 +64,12 @@ namespace GlazeWM.Domain.Windows
     {
       var ranRuleTypes = _ranRuleTypes.GetValueOrDefault(window.Id, new());
       ranRuleTypes.Add(ruleType);
+    }
+
+    public bool HasRanRuleType(Window window, WindowRuleType ruleType)
+    {
+      var ranRuleTypes = _ranRuleTypes.GetValueOrDefault(window.Id, new());
+      return ranRuleTypes.Contains(ruleType);
     }
 
     public void ClearRanRuleTypes(Window window)
@@ -209,7 +216,7 @@ namespace GlazeWM.Domain.Windows
       // Ensure window is top-level (ie. not a child window). Ignore windows that cannot be focused
       // or if they're unavailable in task switcher (alt+tab menu).
       var isApplicationWindow = !HandleHasWindowStyle(handle, WindowStyles.Child)
-        && !HandleHasWindowExStyle(handle, WindowStylesEx.NoActivate | WindowStylesEx.ToolWindow);
+                                && !HandleHasWindowExStyle(handle, WindowStylesEx.NoActivate | WindowStylesEx.ToolWindow);
 
       if (!isApplicationWindow)
         return false;
@@ -218,7 +225,7 @@ namespace GlazeWM.Domain.Windows
       /// the autocomplete popup in Notepad++ and title bar menu in Keepass. Although not
       /// foolproof, these can typically be identified by having an owner window and no title bar.
       var isMenuWindow = GetWindow(handle, GW.Owner) != IntPtr.Zero
-        && !HandleHasWindowStyle(handle, WindowStyles.Capion);
+                         && !HandleHasWindowStyle(handle, WindowStyles.Capion);
 
       return !isMenuWindow;
     }
@@ -243,11 +250,11 @@ namespace GlazeWM.Domain.Windows
 
       // Whether window is below or above the monitor's working area.
       var isHorizontalBar = (isFullWidth && location.Y + location.Height <= monitor.Y)
-        || (isFullWidth && location.Y >= monitor.Y + monitor.Height);
+                            || (isFullWidth && location.Y >= monitor.Y + monitor.Height);
 
       // Whether window is to the left or right of the monitor's working area.
       var isVerticalBar = (isFullHeight && location.X + location.Width <= monitor.X)
-        || (isFullHeight && location.X >= monitor.X + monitor.Width);
+                          || (isFullHeight && location.X >= monitor.X + monitor.Width);
 
       return isHorizontalBar || isVerticalBar;
     }
@@ -292,8 +299,8 @@ namespace GlazeWM.Domain.Windows
       );
 
       return nonMinimizedFocusTarget ??
-        descendantFocusOrder.FirstOrDefault() ??
-        parentWorkspace;
+             descendantFocusOrder.FirstOrDefault() ??
+             parentWorkspace;
     }
   }
 }

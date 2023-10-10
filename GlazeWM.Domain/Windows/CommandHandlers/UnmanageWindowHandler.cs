@@ -46,7 +46,7 @@ namespace GlazeWM.Domain.Windows.CommandHandlers
       _containerService.HasPendingFocusSync = true;
       _windowService.UnmanagedOrMinimizedStopwatch.Restart();
 
-      _windowService.ClearRanRuleTypes(subjectContainer.Id);
+      _windowService.ClearRanRuleTypes(focusedContainer as Window);
 
       return CommandResponse.Ok;
     }
