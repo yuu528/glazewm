@@ -64,6 +64,7 @@ namespace GlazeWM.Domain.Windows
     {
       var ranRuleTypes = _ranRuleTypes.GetValueOrDefault(window.Id, new());
       ranRuleTypes.Add(ruleType);
+      _ranRuleTypes[window.Id] = ranRuleTypes;
     }
 
     public bool HasRanRuleType(Window window, WindowRuleType ruleType)

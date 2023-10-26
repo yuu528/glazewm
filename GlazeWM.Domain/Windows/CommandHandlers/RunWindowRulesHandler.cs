@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Linq;
 using GlazeWM.Domain.UserConfigs;
 using GlazeWM.Domain.UserConfigs.Commands;
