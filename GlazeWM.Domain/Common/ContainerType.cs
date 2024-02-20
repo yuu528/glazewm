@@ -2,10 +2,14 @@ namespace GlazeWM.Domain.Common
 {
   public enum ContainerType
   {
-    Root,
+    RootContainer,
     Monitor,
     Workspace,
-    Split,
-    Window,
+    SplitContainer,
+    FloatingWindow,
+    TilingWindow,
+    MinimizedWindow,
+    MaximizedWindow,
+    FullscreenWindow,
   }
 }

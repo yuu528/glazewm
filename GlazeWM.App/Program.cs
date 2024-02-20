@@ -64,6 +64,8 @@ namespace GlazeWM.App
         InvokeCommandMessage or
         GetMonitorsMessage or
         GetWorkspacesMessage or
+        GetFocusedContainerMessage or
+        GetBindingModeMessage or
         GetWindowsMessage => await StartCli(args, isSingleInstance, false),
         SubscribeMessage => await StartCli(args, isSingleInstance, true),
         _ => ExitWithError(parsedArgs.Errors.First())

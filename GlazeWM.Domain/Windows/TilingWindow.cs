@@ -1,4 +1,5 @@
 using System;
+using GlazeWM.Domain.Common;
 using GlazeWM.Domain.Containers;
 using GlazeWM.Infrastructure;
 using GlazeWM.Infrastructure.WindowsApi;
@@ -7,6 +8,9 @@ namespace GlazeWM.Domain.Windows
 {
   public sealed class TilingWindow : Window, IResizable
   {
+    /// <inheritdoc />
+    public override ContainerType Type { get; } = ContainerType.TilingWindow;
+
     public double SizePercentage { get; set; } = 1;
 
     private readonly ContainerService _containerService =

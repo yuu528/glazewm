@@ -211,6 +211,8 @@ namespace GlazeWM.App.IpcServer
           GetMonitorsMessage => _monitorService.GetMonitors(),
           GetWorkspacesMessage => _workspaceService.GetActiveWorkspaces(),
           GetWindowsMessage => _windowService.GetWindows(),
+          GetFocusedContainerMessage => _containerService.FocusedContainer,
+          GetBindingModeMessage => _containerService.ActiveBindingMode,
           _ => throw new Exception($"Invalid message '{message}'")
         };
 

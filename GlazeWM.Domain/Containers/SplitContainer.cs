@@ -7,7 +7,7 @@ namespace GlazeWM.Domain.Containers
   public class SplitContainer : Container, IResizable
   {
     /// <inheritdoc />
-    public override ContainerType Type { get; } = ContainerType.Split;
+    public override ContainerType Type { get; } = ContainerType.SplitContainer;
 
     public TilingDirection TilingDirection { get; set; } = TilingDirection.Horizontal;
 

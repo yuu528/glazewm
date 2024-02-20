@@ -1,6 +1,4 @@
 using System;
-using System.Diagnostics;
-using GlazeWM.Domain.Common;
 using GlazeWM.Domain.Common.Enums;
 using GlazeWM.Domain.Containers;
 using GlazeWM.Infrastructure.WindowsApi;
@@ -10,9 +8,6 @@ namespace GlazeWM.Domain.Windows
 {
   public abstract class Window : Container
   {
-    /// <inheritdoc />
-    public override ContainerType Type { get; } = ContainerType.Window;
-
     public IntPtr Handle { get; }
 
     /// <summary>
